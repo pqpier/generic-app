@@ -1,12 +1,5 @@
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
-const mailchimp = require("@mailchimp/mailchimp_marketing");
-const sendEventToFacebook = require("./actions/sendEventToFacebook");
-const {
-  createContactOnMailchimp,
-  updateContactTagsOnMailchimp,
-} = require("./actions/sendEventToMailchimp");
-const { getUniqueId } = require("./utils/getUniqueId");
 
 if (admin.apps.length === 0) {
   admin.initializeApp();
@@ -16,55 +9,35 @@ exports.onUserCreate = functions.firestore
   .document("users/{userId}")
   .onCreate(async (snap, context) => {
     const userData = snap.data();
-    userData.event_name = "Lead";
-    userData.event_id = getUniqueId();
-    userData.action_source = "website";
-    userData.event_source_url = `https://${userData.origin}`;
-
-    if (
-      userData.origin.includes("localhost") ||
-      userData.origin.includes("127.0.0.1")
-    ) {
+    const userId = context.params.userId;
+    if (userData.isReferral !== true) {
       return {
         success: true,
-        message: "Skipped function, origin is localhost",
+        message: "Successfully created user " + userData.email,
       };
     }
 
-    const promises = [
-      createContactOnMailchimp(userData),
-      sendEventToFacebook(userData),
-    ];
-
-    const results = await Promise.allSettled(promises);
-
-    const subscriberHash = results[0].value;
-
-    if (results[1].status === "rejected") {
-      console.error("Erro ao enviar evento para o Facebook", results[1].reason);
-    }
+    const referrer = userData.referrer;
+    const referrerId = referrer.split("-")[2] + "-" + referrer.split("-")[3];
 
     try {
-      await snap.ref.update({
-        fbc: admin.firestore.FieldValue.delete(),
-        fbp: admin.firestore.FieldValue.delete(),
-        user_agent: admin.firestore.FieldValue.delete(),
+      await admin.firestore().collection("rewardPurchases").doc(userId).set({
+        buyer_email: userData.email,
+        buyer_id: userId,
+        referrer: referrer,
+        referrerId: referrerId,
+        purchase_date: new Date(),
       });
     } catch (error) {
-      console.error("Erro ao deletar campos do usuário", error);
+      console.error("Error creating reward purchase:", error);
+      return {
+        success: false,
+        message: "Error creating reward purchase " + userData.email,
+      };
     }
-
-    if (results[0].status === "rejected") {
-      console.error("Erro ao criar contato no Mailchimp", results[0].reason);
-      return { success: false, message: "Error creating contact" };
-    }
-
-    await updateContactTagsOnMailchimp(subscriberHash, [
-      { name: "lead", status: "active" },
-    ]);
 
     return {
       success: true,
-      message: "Successfully created contact " + userData.email,
+      message: "Successfully created reward purchase " + userData.email,
     };
   });

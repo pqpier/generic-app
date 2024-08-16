@@ -92,6 +92,7 @@ export const useFirestore = (coll) => {
       });
       return { type: "SUCCESS", payload: addedDocument.id };
     } catch (err) {
+      console.log("Error adding document: ", doc, err.message);
       dispatchIfNotCancelled({ type: "ERROR", payload: err.message });
       return { type: "ERROR", payload: err.message };
     }

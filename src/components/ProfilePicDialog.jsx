@@ -16,7 +16,7 @@ import { reload, updateProfile } from "firebase/auth";
 
 import { useState, useRef, useEffect } from "react";
 import Cropper from "react-easy-crop";
-import getCroppedImg from "./cropImage";
+import getCroppedImg from "./CropImage";
 
 export function ProfilePicDialog({ children, setRerender }) {
   const { user } = useAuthContext();

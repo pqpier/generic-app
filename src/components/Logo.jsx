@@ -13,11 +13,9 @@ export default function Logo({ size, justify }) {
 
   return (
     <div role="button" onClick={navigateToHome}>
-      <img
-        className={width}
-        src={theme === "light" ? LogoDarkPng : LogoLightPng}
-        alt="logo"
-      />
+      <h2 className="font-league text-4xl tracking-tighter text-foreground">
+        solyd<span className=" text-[#00FFA3]">.</span>
+      </h2>
     </div>
   );
 }

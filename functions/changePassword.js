@@ -23,7 +23,7 @@ const corsOptions = {
       "http://localhost:5174",
       "https://127.0.0.1:5174",
       "https://template-90106.web.app",
-      "https://app.seudominio.com.br",
+      "https://trading.solydapp.com",
     ];
     if (!origin || allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);

@@ -3,7 +3,7 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     function isAdmin() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.admin == 'SEU_VALOR_SECRETO'; // TODO: Altera
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.admin == 'ijsaji88aadj'; // TODO: Altera
     }
     function isOwner() {
       return request.auth.uid == resource.data.ownerId || request.auth.uid == resource.data.userId;
@@ -14,17 +14,61 @@ service cloud.firestore {
     function isSignedIn() {
       return request.auth.uid != null;
     }
+    function isPaid() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.plan.status == 'active';
+    }
     match /{document=**} {
-      allow read, write: if true;
+      allow read, write: if false;
     }
     match /users/{userId} {
       allow delete: if false;
       allow create: if isSignedIn() && idsMatch(userId);
       allow update: if
         isSignedIn() && idsMatch(userId)
-        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['email', 'id', 'admin']);
+        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['email', 'id', 'admin', 'plan']);
       allow read:
-        if isSignedIn() && (idsMatch(userId) || isAdmin() || teamsMatch());
+        if isSignedIn() && (idsMatch(userId) || isAdmin());
+    }
+    match /signals/{signalId} {
+      allow delete: if false;
+      allow create: if isSignedIn() && isAdmin();
+      allow update: if isSignedIn() && isAdmin();
+      allow read: if isSignedIn() && isPaid();
+    }
+    match /tokens/{planId} {
+      allow delete: if false;
+      allow create: if false;
+      allow update: if false;
+      allow read: if isSignedIn() && isPaid();
+    }
+    match /appVersion/{current} {
+      allow delete: if false;
+      allow create: if false;
+      allow update: if false;
+      allow read: if isSignedIn() && isPaid();
+    }
+    match /trades/{tradeId} {
+      allow delete: if false;
+      allow create: if isSignedIn() && isPaid();
+      allow update: if isSignedIn() && isOwner() && isPaid();
+      allow read: if isSignedIn() && isOwner() && isPaid();
+    }
+    match /progress/{progressId} {
+      allow read, write: if true;
+    }
+    match /lessons/{lessonId} {
+      allow read, write: if isSignedIn() && isPaid();
+    }
+    match /courses/{courseId} {
+      allow read, write: if isSignedIn() && isPaid();
+    }
+    match /referrals/{referrerId} {
+      allow create, read: if isSignedIn() && isPaid();
+      allow update, delete: if false;
+    }
+    match /rewardPurchases/{rewardPurchasesId} {
+      allow read: if isSignedIn() && isPaid();
+      allow create, update, delete: if false;
     }
   }
 }

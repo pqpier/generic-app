@@ -1,0 +1,18 @@
+.youtube-container {
+  overflow: hidden;
+  width: 100%;
+  aspect-ratio: 16/9;
+}
+.youtube-container iframe {
+  width: 300%;
+  height: 100%;
+  margin-left: -100%;
+}
+
+.ytp-title {
+  display: none !important;
+}
+
+.ytp-expand-pause-overlay .ytp-pause-overlay {
+  display: none !important;
+}

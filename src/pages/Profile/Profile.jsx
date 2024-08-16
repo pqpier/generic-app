@@ -4,10 +4,11 @@ import { useAuthContext } from "@/hooks/useAuthContext";
 import { Input } from "@/shadcn/components/ui/input";
 import { Card, CardContent } from "@/shadcn/components/ui/card";
 import { Button } from "@/shadcn/components/ui/button";
+import { RiskToggle } from "@/shadcn/components/risk-toggle";
 
 // TODO: Trocar pela URL da sua Cloud Function
 const url =
-  "https://us-central1-projeto-teste-405b3.cloudfunctions.net/changePassword";
+  "https://us-central1-trading-app-e0773.cloudfunctions.net/changePassword";
 
 export default function Profile({ rerender, setRerender }) {
   const { user } = useAuthContext();
@@ -46,23 +47,34 @@ export default function Profile({ rerender, setRerender }) {
   };
 
   return (
-    <div className="p-8 xl:w-3/5 mx-auto 2xl:w-1/3">
+    <div className="mt-5 px-0 py-5 w-full xl:w-3/5 mx-auto 2xl:w-1/3">
       {rerender && <span className="hidden"></span>}
       <h1 className="font-medium text-xl">Sua conta</h1>
-      <p className="text-muted-foreground font-light text-md text-center sm:text-left">
+      <p className="text-muted-foreground font-light text-md text-left">
         Altere os dados da sua conta
       </p>
 
-      <Card className="mt-8 w-full">
+      <Card className="mt-2.5 w-full">
         <CardContent>
           <p className="mt-5 text-muted-foreground mb-1.5">Nome completo</p>
           <Input disabled value={user.displayName} readOnly type="text" />
           <p className="mt-5 text-muted-foreground mb-1.5">E-mail</p>
           <Input disabled value={user.email} readOnly type="email" />
-          <p className="mt-5 text-muted-foreground mb-1.5">
-            Tema (claro/escuro)
-          </p>
-          <ModeToggle />
+          <div className="flex gap-5">
+            <div>
+              <p className="mt-5 text-muted-foreground mb-1.5">
+                Nível de risco
+              </p>
+              <RiskToggle />
+            </div>
+            <div>
+              <p className="mt-5 text-muted-foreground mb-1.5">
+                Tema (claro/escuro)
+              </p>
+              <ModeToggle />
+            </div>
+          </div>
+
           {isEmailProvider && (
             <form onSubmit={changePassword}>
               <p className="mt-5 text-muted-foreground mb-1.5">Senha atual</p>

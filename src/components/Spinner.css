@@ -1,0 +1,31 @@
+.spinner {
+  width: 24px;
+  height: 24px;
+  clear: both;
+}
+
+/* Spinner Circle Rotation */
+.spinner-circle {
+  border: 4px rgba(255, 255, 255, 0.25) solid;
+  border-top: 4px #fff solid;
+  border-radius: 50%;
+  -webkit-animation: rotat 0.6s infinite linear;
+  animation: rotat 0.6s infinite linear;
+}
+
+@-webkit-keyframes rotat {
+  from {
+    -webkit-transform: rotate(0deg);
+  }
+  to {
+    -webkit-transform: rotate(359deg);
+  }
+}
+@keyframes rotat {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(359deg);
+  }
+}

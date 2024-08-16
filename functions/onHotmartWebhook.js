@@ -1,6 +1,7 @@
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 const express = require("express");
+const sendEmail = require("./utils/sendEmail");
 
 if (admin.apps.length === 0) {
   admin.initializeApp();
@@ -9,31 +10,6 @@ if (admin.apps.length === 0) {
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-function calculateExpirationDate(planName, creationDate) {
-  const createdDate = new Date(creationDate);
-  let expirationDate = new Date(creationDate); // inicializado com a data de criação
-
-  if (planName.includes("Mensal")) {
-    expirationDate.setMonth(createdDate.getMonth() + 1);
-  } else if (planName.includes("Semestral")) {
-    expirationDate.setMonth(createdDate.getMonth() + 6);
-  } else if (planName.includes("Anual")) {
-    expirationDate.setFullYear(createdDate.getFullYear() + 1);
-  } else {
-    expirationDate.setMonth(createdDate.getMonth() + 1);
-  }
-
-  return expirationDate;
-}
-
-const getRecipient = (email) => {
-  if (email.includes("@example.com")) {
-    return ""; // TODO: Colocar seu e-mail para teste
-  }
-
-  return email;
-};
 
 app.post("/", async (req, res) => {
   const webhook = req.body;
@@ -45,266 +21,229 @@ app.post("/", async (req, res) => {
     return res.status(400).send("O objeto de webhook não deve estar vazio.");
   }
 
+  const email = webhook.data.buyer.email;
+  const name = webhook.data.buyer.name;
+  const phone_number = webhook.data.buyer.checkout_phone;
+
   try {
     const db = admin.firestore();
     const auth = admin.auth();
+    let isReferral =
+      webhook.data.purchase?.origin?.xcod?.includes("ref-vid-") ||
+      webhook.data.purchase?.origin?.xcod?.includes("ref-pay-");
+
+    let referrer;
+    if (isReferral) {
+      referrer = webhook.data.purchase.origin.xcod;
+    } else {
+      referrer = false;
+      isReferral = false;
+    }
 
     if (webhook.event === "PURCHASE_APPROVED") {
-      let userRecord;
-      //Consultando a coleção "users" pelo e-mail para obter o ID
+      let userId;
+      let userExistsOnAuth;
       try {
-        userRecord = await auth.getUserByEmail(webhook.data.buyer.email);
+        const usersRef = db.collection("users");
+        const query = usersRef.where("email", "==", email);
+        const querySnapshot = await query.get();
+
+        if (querySnapshot.empty) {
+          try {
+            userExistsOnAuth = await auth.getUserByEmail(email);
+            console.log("userExistsOnAuth", "==", userExistsOnAuth);
+          } catch (err) {
+            console.log("Usuário ainda não existe, será criado: ", email);
+          }
+          if (userExistsOnAuth) {
+            userId = userExistsOnAuth.uid;
+            await db
+              .collection("users")
+              .doc(userId)
+              .set(
+                {
+                  email: email,
+                  name: name,
+                  phone: phone_number,
+                  id: userId,
+                  plan: {
+                    status: "active",
+                    name: "premium",
+                    status_date: new Date(),
+                    platform: "hotmart",
+                  },
+                  risk: "medium",
+                  isReferral,
+                  referrer,
+                },
+                { merge: true }
+              );
+          }
+        } else {
+          // Assumindo que só há um documento com esse email
+          const userDoc = querySnapshot.docs[0];
+          userId = userDoc.id;
+        }
       } catch (error) {
-        console.log("Usuário não encontrado, criando novo usuário.");
+        console.error("Error retrieving user ID by email:", error);
+        throw error;
+      }
+
+      // // Verificar se encontrou o usuário
+      if (!userExistsOnAuth) {
+        // Calculando a data de renovação do plano
+
+        let userRecord;
+        try {
+          userRecord = await auth.createUser({
+            email,
+            password: "fmk123sep",
+            displayName: name,
+            emailVerified: true,
+            disabled: false,
+          });
+
+          await db
+            .collection("users")
+            .doc(userRecord.uid)
+            .set({
+              email: email,
+              name: name,
+              phone: phone_number,
+              id: userRecord.uid,
+              plan: {
+                status: "active",
+                name: "premium",
+                status_date: new Date(),
+                platform: "hotmart",
+              },
+              risk: "medium",
+              isReferral,
+              referrer,
+            });
+          userId = userRecord.uid;
+          await sendEmail(email, name, "fmk123sep");
+        } catch (error) {
+          console.log(error);
+        }
+
+        return res.status(201).send("Usuário criado com sucesso!");
+      }
+
+      // Pegando o ID do usuário
+      // const userId = userRec.uid;
+
+      await db
+        .collection("users")
+        .doc(userId)
+        .set(
+          {
+            email: email,
+            name: name,
+            phone: phone_number,
+            id: userId,
+            plan: {
+              status: "active",
+              name: "premium",
+              status_date: new Date(),
+              platform: "hotmart",
+            },
+            risk: "medium",
+            isReferral,
+            referrer,
+          },
+          { merge: true }
+        );
+    } else if (webhook.event === "PURCHASE_CHARGEBACK") {
+      let userRec;
+      try {
+        userRec = await auth.getUserByEmail(email);
+      } catch (error) {
+        console.log(error);
       }
 
       // Verificar se encontrou o usuário
-      if (!userRecord) {
-        const password = generatePassword();
+      if (!userRec) {
+        return res.status(404).send("Usuário não encontrado.");
+      }
 
-        userRecord = await auth.createUser({
-          email: webhook.data.buyer.email,
-          emailVerified: true,
-          displayName: webhook.data.buyer.name,
-          password,
-          disabled: false,
-        });
+      // Pegando o ID do usuário
+      const userId = userRec.uid;
 
-        await db.collection("users").doc(userRecord.uid).set({
-          email: webhook.data.buyer.email,
-          name: webhook.data.buyer.name,
-          phone: webhook.data.buyer.checkout_phone,
-          origin: "https://pay.hotmart.com",
-        });
-
-        // Calculando a data de renovação do plano
-        const creationDate = webhook.creation_date;
-
-        const renewalDate = calculateExpirationDate(
-          webhook.data.subscription.plan.name,
-          creationDate
+      await db
+        .collection("users")
+        .doc(userId)
+        .set(
+          {
+            email: email,
+            name: name,
+            phone: phone_number,
+            id: userId,
+            plan: {
+              status: "chargedback",
+              status_date: new Date(),
+            },
+            risk: "medium",
+          },
+          { merge: true }
         );
 
-        // Definindo o objeto de assinatura
-        const subscription = {
-          status: "ACTIVE",
-          plan: webhook.data.subscription.plan.name,
-          price: webhook.data.purchase.price.value,
-          purchaseDate: new Date(webhook.creation_date),
-          renewalDate,
-          statusDate: new Date(webhook.creation_date),
-          ownerId: userRecord.uid,
-          ownerEmail: webhook.data.buyer.email,
-        };
+      const rewardPurchase = await db
+        .collection("rewardPurchases")
+        .doc(userId)
+        .get();
 
-        await db
-          .collection("subscriptions")
-          .doc(userRecord.uid)
-          .set(subscription, { merge: true });
+      if (rewardPurchase.exists) {
+        await rewardPurchase.ref.set(
+          { refundOrChargeback: true },
+          { merge: true }
+        );
+      }
+    } else if (webhook.event === "PURCHASE_REFUNDED") {
+      let userRec;
+      try {
+        userRec = await auth.getUserByEmail(email);
+      } catch (error) {
+        console.log(error);
+      }
 
-        // Enviar e-mail com os dados de acesso
-        const transporter = nodemailer.createTransport({
-          host: "smtp.hostinger.com",
-          port: 465,
-          secure: true,
-          auth: {
-            user: "equipe@testesvariados.shop",
-            pass: "Teste123!",
+      // Verificar se encontrou o usuário
+      if (!userRec) {
+        return res.status(404).send("Usuário não encontrado.");
+      }
+
+      // Pegando o ID do usuário
+      const userId = userRec.uid;
+
+      await db
+        .collection("users")
+        .doc(userId)
+        .set(
+          {
+            email: email,
+            name: name,
+            phone: phone_number,
+            id: userId,
+            plan: {
+              status: "refunded",
+              status_date: new Date(),
+            },
+            risk: "medium",
           },
-        });
+          { merge: true }
+        );
 
-        const mailOptions = {
-          from: "Fulano <noreply@testesvariados.shop>", // TODO: Alterar nome e e-mail
-          to: getRecipient(webhook.data.buyer.email),
-          subject: "Acesse o Template App agora mesmo!", // TODO: Alterar o nome do app
-          html: `
-          <div>
-            <div style="text-align: center;">
-              <h2>Olá, ${webhook.data.buyer.name}, seja bem-vindo ao Template App!</h2>
-            </div>
-            <div style="text-align: left;">
-              <p>
-                Acesse imediatamente nossa plataforma, clicando no botão e informando os dados de acesso:
-              </p>
-              <p>E-mail: <b>${webhook.data.buyer.email}</b></p>
-              <p>Senha: <b>${password}</b></p>
-              <a
-                href="https://app.seuapp.com"
-                style="font-weight:bold;border-radius:6px;width:100%;text-align:center;display: inline-block; padding: 16px 0; color: white; background-color: #007bff; text-decoration: none;"
-                >Quero Acessar Agora</a
-              >
-            </div>
-          </div>`, // TODO: Alterar dados no template de e-mail
-        };
-
-        await transporter.sendMail(mailOptions);
-
-        return res.status(200).send("Usuário criado com sucesso.");
-      }
-
-      // Pegando o ID do usuário
-      const userId = userRecord.uid;
-
-      // Calculando a data de renovação do plano
-      const creationDate = webhook.creation_date;
-
-      const renewalDate = calculateExpirationDate(
-        webhook.data.subscription.plan.name,
-        creationDate
-      );
-
-      // Definindo o objeto de assinatura
-      const subscription = {
-        status: "ACTIVE",
-        plan: webhook.data.subscription.plan.name,
-        price: webhook.data.purchase.price.value,
-        purchaseDate: new Date(webhook.creation_date),
-        renewalDate,
-        statusDate: new Date(webhook.creation_date),
-        ownerId: userId,
-        ownerEmail: webhook.data.buyer.email,
-      };
-
-      await db
-        .collection("subscriptions")
+      const rewardPurchase = await db
+        .collection("rewardPurchases")
         .doc(userId)
-        .set(subscription, { merge: true });
-    } else if (webhook.event === "PURCHASE_CHARGEBACK") {
-      //Consultando a coleção "users" pelo e-mail para obter o ID
-      const userSnapshot = await db
-        .collection("users")
-        .where("email", "==", webhook.data.buyer.email)
-        .limit(1)
         .get();
 
-      // Verificar se encontrou o usuário
-      if (userSnapshot.empty) {
-        return res.status(404).send("Usuário não encontrado.");
+      if (rewardPurchase.exists) {
+        await rewardPurchase.ref.set(
+          { refundOrChargeback: true },
+          { merge: true }
+        );
       }
-
-      // Pegando o ID do usuário
-      const userId = userSnapshot.docs[0].id;
-
-      // Definindo o objeto de assinatura
-      const subscription = {
-        status: "CHARGEBACK",
-        statusDate: new Date(webhook.creation_date),
-      };
-
-      await db
-        .collection("subscriptions")
-        .doc(userId)
-        .set(subscription, { merge: true });
-    } else if (webhook.event === "PURCHASE_CANCELED") {
-      //Consultando a coleção "users" pelo e-mail para obter o ID
-      const userSnapshot = await db
-        .collection("users")
-        .where("email", "==", webhook.data.buyer.email)
-        .limit(1)
-        .get();
-
-      // Verificar se encontrou o usuário
-      if (userSnapshot.empty) {
-        return res.status(404).send("Usuário não encontrado.");
-      }
-
-      // Pegando o ID do usuário
-      const userId = userSnapshot.docs[0].id;
-
-      // Definindo o objeto de assinatura
-      const subscription = {
-        status: "DECLINED",
-        statusDate: new Date(webhook.creation_date),
-      };
-
-      await db
-        .collection("subscriptions")
-        .doc(userId)
-        .set(subscription, { merge: true });
-    } else if (webhook.event === "SWITCH_PLAN") {
-      //Consultando a coleção "users" pelo e-mail para obter o ID
-      const userSnapshot = await db
-        .collection("users")
-        .where("email", "==", webhook.data.buyer.email)
-        .limit(1)
-        .get();
-
-      // Verificar se encontrou o usuário
-      if (userSnapshot.empty) {
-        return res.status(404).send("Usuário não encontrado.");
-      }
-
-      // Pegando o ID do usuário
-      const userId = userSnapshot.docs[0].id;
-
-      const newPlan = webhook.data.plans.find((plan) => plan.current).name;
-      const oldPlan = webhook.data.plans.find((plan) => !plan.current).name;
-
-      // Definindo o objeto de assinatura
-      const subscription = {
-        status: webhook.data.subscription.status,
-        statusDate: new Date(webhook.creation_date),
-        switch_plan_date: new Date(webhook.data.switch_plan_date),
-        plan: newPlan,
-        oldPlan: oldPlan,
-      };
-
-      await db
-        .collection("subscriptions")
-        .doc(userId)
-        .set(subscription, { merge: true });
-    } else if (webhook.event === "SUBSCRIPTION_CANCELLATION") {
-      //Consultando a coleção "users" pelo e-mail para obter o ID
-      const userSnapshot = await db
-        .collection("users")
-        .where("email", "==", webhook.data.buyer.email)
-        .limit(1)
-        .get();
-
-      // Verificar se encontrou o usuário
-      if (userSnapshot.empty) {
-        return res.status(404).send("Usuário não encontrado.");
-      }
-
-      // Pegando o ID do usuário
-      const userId = userSnapshot.docs[0].id;
-
-      // Definindo o objeto de assinatura
-      const subscription = {
-        status: "CANCELED",
-        statusDate: new Date(webhook.creation_date),
-      };
-
-      await db
-        .collection("subscriptions")
-        .doc(userId)
-        .set(subscription, { merge: true });
-    } else if (webhook.event === "PURCHASE_DELAYED") {
-      //Consultando a coleção "users" pelo e-mail para obter o ID
-      const userSnapshot = await db
-        .collection("users")
-        .where("email", "==", webhook.data.buyer.email)
-        .limit(1)
-        .get();
-
-      // Verificar se encontrou o usuário
-      if (userSnapshot.empty) {
-        return res.status(404).send("Usuário não encontrado.");
-      }
-
-      // Pegando o ID do usuário
-      const userId = userSnapshot.docs[0].id;
-
-      // Definindo o objeto de assinatura
-      const subscription = {
-        status: "DELAYED",
-        statusDate: new Date(webhook.creation_date),
-      };
-
-      await db
-        .collection("subscriptions")
-        .doc(userId)
-        .set(subscription, { merge: true });
     }
 
     return res.status(201).send("Webhook processado com sucesso!");

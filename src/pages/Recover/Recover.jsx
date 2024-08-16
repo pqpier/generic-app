@@ -38,23 +38,24 @@ export default function PasswordRecovery() {
 
   return (
     <div className="flex flex-col-reverse xl:flex-row 2xl:gap-20 xl:h-screen w-full xl:px-20 2xl:px-40 xl:py-20 2xl:py-0">
-      <div className="hidden sm:flex xl:w-1/2 2xl:h-[75%] my-auto bg-muted rounded-xl px-5 sm:p-12 py-8 justify-center items-center">
+      <div className="xl:w-1/2 2xl:h-[50%] my-auto bg-muted rounded-xl px-5 sm:p-12 py-8 flex justify-center items-center">
         <div>
           <Logo />
           <h2 className="mt-12 sm:mt-10 2xl:mt-16 text-4xl leading-[44px] sm:leading-[50px] font-medium">
-            Lorem ipsum dolor sit amet consectetur, adipisicing elit.
+            Negocie nos mercados globais com o poder da Inteligência Artificial.
           </h2>
           <p className="mt-4 sm:mt-6 2xl:mt-10 text-muted-foreground">
-            Lorem ipsum dolor sit amet consectetur adipisicing elit. Labore
-            debitis dolore, dicta fugiat iure quia! Hic facilis aut ducimus
-            aliquam blanditiis ex ea. Ipsa omnis quas impedit maiores ad unde?
+            Receba Oportunidades de Negociação em tempo real para simplesmente
+            copiar e colar e obter lucros diários em dólar. Utilize nossa
+            estratégia antivolatilidade para realizar dezenas de operações por
+            dia e lucrar com segurança.
           </p>
-          <div className="bg-foreground text-background p-5 sm:p-8 rounded-xl mt-[8%] leading-6 2xl:leading-8">
+          {/* <div className="bg-foreground text-background p-5 sm:p-8 rounded-xl mt-[8%] leading-6 2xl:leading-8">
             Lorem ipsum dolor sit amet, consectetur adipisicing elit. Eveniet
             quasi molestias molestiae, pariatur, doloribus neque saepe sit hic
             quis sequi nulla non quidem accusantium harum ipsa minima adipisci
             iure obcaecati!
-          </div>
+          </div> */}
         </div>
       </div>
       <div className="flex flex-col justify-center xl:w-1/2 px-5 md:px-20 h-screen sm:h-auto">
@@ -78,7 +79,7 @@ export default function PasswordRecovery() {
             />
             <Button
               size="xl"
-              className="mt-6 text-lg w-full"
+              className="mt-6 text-lg w-full h-12"
               disabled={isPending}
             >
               {isPending && (
@@ -97,7 +98,7 @@ export default function PasswordRecovery() {
           )}
           <div className="mt-12 flex justify-center gap-2 text-lg">
             <p>Lembrou-se da senha?</p>
-            <Link to="/login" className="text-primary">
+            <Link to="/login" className="text-blue-500 underline">
               Entre na sua conta.
             </Link>
           </div>

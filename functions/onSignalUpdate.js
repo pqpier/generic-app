@@ -66,6 +66,10 @@ exports.onSignalUpdate = functions.firestore
         return null;
       }
 
+      if (newValue.silenced) {
+        return null;
+      }
+
       const url = "https://gate.whapi.cloud/messages/text";
       const data = {
         to: "120363315861559683@g.us",

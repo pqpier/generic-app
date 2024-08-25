@@ -17,12 +17,13 @@ import VideoPlayer from "./VideoPlayer";
 import { Button } from "@/shadcn/components/ui/button";
 import { useFirestore } from "@/hooks/useFirestore";
 
-export default function Course() {
-  const query = useQuery();
+export default function Training({ redirectToRoute }) {
+  const navigate = useNavigate();
   const { user } = useAuthContext();
   const { document: course } = useDocument("courses", "9DwWIAtShVCPXyRPSbqF");
   const { addDocument: addProgress, updateDocument: updateProgress } =
     useFirestore("progress");
+  const { updateDocument: updateUser } = useFirestore("users");
   const { documents: lessons } = useCollection("lessons", [
     "courseId",
     "==",
@@ -171,6 +172,22 @@ export default function Course() {
     }
     return moduleA.index - moduleB.index;
   });
+
+  useEffect(() => {
+    async function resetRedirect() {
+      await updateUser(user.uid, {
+        redirectToRoute: {
+          active: false,
+          path: null,
+        },
+      });
+    }
+
+    if (redirectToRoute && redirectToRoute.active) {
+      resetRedirect();
+      navigate(redirectToRoute.path);
+    }
+  }, [redirectToRoute]);
 
   if (!course || !selectedLesson) return;
 

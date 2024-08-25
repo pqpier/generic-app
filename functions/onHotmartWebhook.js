@@ -73,6 +73,7 @@ app.post("/", async (req, res) => {
                     platform: "hotmart",
                   },
                   risk: "medium",
+                  new: true,
                   isReferral,
                   referrer,
                 },
@@ -118,6 +119,7 @@ app.post("/", async (req, res) => {
                 platform: "hotmart",
               },
               risk: "medium",
+              new: true,
               isReferral,
               referrer,
             });
@@ -149,6 +151,7 @@ app.post("/", async (req, res) => {
               platform: "hotmart",
             },
             risk: "medium",
+            new: true,
             isReferral,
             referrer,
           },

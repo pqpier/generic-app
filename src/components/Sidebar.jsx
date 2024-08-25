@@ -106,7 +106,7 @@ export default function Sidebar({ rerender, setRerender }) {
             }`}
             onClick={() => {
               setActiveRoute(-1);
-              navigate("/account");
+              navigate("/conta");
             }}
           >
             <PersonIcon />

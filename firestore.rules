@@ -63,12 +63,17 @@ service cloud.firestore {
       allow read, write: if isSignedIn() && isPaid();
     }
     match /referrals/{referrerId} {
-      allow create, read: if isSignedIn() && isPaid();
-      allow update, delete: if false;
+      allow read: if isSignedIn() && isPaid();
+      allow update: if isSignedIn() && isPaid() && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['id', 'referrerId', 'checkoutLink', 'videoLink', 'createdAt']);
+      allow create, delete: if false;
     }
     match /rewardPurchases/{rewardPurchasesId} {
       allow read: if isSignedIn() && isPaid();
       allow create, update, delete: if false;
+    }
+    match /onboarding/{onboardingId} {
+      allow read, create: if isSignedIn() && isPaid();
+      allow update, delete: if false;
     }
   }
 }

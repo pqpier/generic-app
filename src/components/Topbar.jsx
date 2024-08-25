@@ -99,7 +99,7 @@ export default function Topbar({ setRerender }) {
               </ProfilePicDialog>
               <div
                 onClick={() => {
-                  navigate("/account");
+                  navigate("/conta");
                   setOpen(false);
                 }}
               >
@@ -140,7 +140,7 @@ export default function Topbar({ setRerender }) {
               <div
                 className="flex gap-3 items-center"
                 onClick={() => {
-                  navigate("/account");
+                  navigate("/conta");
                   setOpen(false);
                 }}
               >

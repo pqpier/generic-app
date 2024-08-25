@@ -30,8 +30,10 @@ import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Button } from "@/shadcn/components/ui/button";
 import useIsPWA from "@/hooks/useIsPWA";
+import { useNavigate } from "react-router-dom";
 
 export default function Home() {
+  const navigate = useNavigate();
   const { document: currentAppVersion } = useDocument("appVersion", "current");
   const isPwa = useIsPWA();
   const [balance, setBalance] = useState("");
@@ -317,6 +319,17 @@ export default function Home() {
         </div>
       )}
 
+      {!userDoc.new && !userDoc.onboarding && (
+        <div
+          className="mt-14 bg-blue-400 p-2.5 text-center text-black text-md rounded-md mx-2 sm:mx-5 cursor-pointer"
+          onClick={() => navigate("/perfil")}
+        >
+          <b>Preencha o seu perfil de investidor</b> <br />
+          Clique aqui para preencher e escolher um nome de usuário para sua
+          conta.
+        </div>
+      )}
+
       <div className="mt-12 py-4 px-5 sm:p-8 sm:w-2/3 xl:w-1/2 mx-auto bg-background rounded-xl min-h-[calc(100vh_-_96px)]">
         <div className="flex gap-2.5 items-center">
           <h1 className="sm:text-lg font-medium">Capital (USD):</h1>
@@ -327,7 +340,7 @@ export default function Home() {
             placeholder="Informe"
             value={balance}
             onChange={(e) =>
-              changeBalance(e.target.value.replace(/[^0-9.]/g, ""))
+              changeBalance(e.target.value.replace(/[^0-9]/g, ""))
             }
           />
         </div>

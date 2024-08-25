@@ -9,11 +9,18 @@ const { onHotmartWebhook } = require("./onHotmartWebhook");
 const { onSignalUpdate } = require("./onSignalUpdate");
 const { moveClosedSignals } = require("./moveClosedSignals");
 const { resetPassword } = require("./resetPassword");
-const { onReferralCreate } = require("./onReferralCreate");
+const { onReferralUpdate } = require("./onReferralUpdate");
 const { getLinkAnalytics } = require("./getLinkAnalytics");
 const { onUserCreate } = require("./onUserCreate");
 const { createInDatabase } = require("./createInDatabase");
 const { findHighestBalances } = require("./findHighestBalances");
+const { createMissingReferrals } = require("./createMissingReferrals");
+const { checkUsersAndReferrals } = require("./checkUsersAndReferrals");
+const { addMissingReferrerIds } = require("./addMissingReferrerIds");
+const {
+  updateTotalPurchasesForReferrals,
+} = require("./updateTotalPurchasesForUsers");
+const { createUsername } = require("./createUsername");
 
 module.exports = {
   onKiwifyWebhook,
@@ -26,9 +33,14 @@ module.exports = {
   onSignalUpdate,
   moveClosedSignals,
   resetPassword,
-  onReferralCreate,
+  onReferralUpdate,
   getLinkAnalytics,
   onUserCreate,
   createInDatabase,
   findHighestBalances,
+  createMissingReferrals,
+  checkUsersAndReferrals,
+  addMissingReferrerIds,
+  updateTotalPurchasesForReferrals,
+  createUsername,
 };

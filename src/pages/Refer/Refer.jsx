@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useAuthContext } from "@/hooks/useAuthContext";
 import { Card, CardContent } from "@/shadcn/components/ui/card";
 import { Button } from "@/shadcn/components/ui/button";
@@ -8,30 +8,43 @@ import { useFirestore } from "@/hooks/useFirestore";
 import { CheckCircledIcon, CopyIcon } from "@radix-ui/react-icons";
 import { useCollection } from "@/hooks/useCollection";
 import { useReferrerContext } from "@/hooks/useReferrerContext";
+import { Input } from "@/shadcn/components/ui/input";
 
 export default function Refer() {
   const { user } = useAuthContext();
   const { referrerDoc } = useReferrerContext();
-  const { createDocument: createReferral } = useFirestore(
+  const { updateDocument: updateReferral } = useFirestore(
     "referrals",
     user.uid
+  );
+  const { documents: referrals } = useCollection(
+    "referrals",
+    null,
+    ["totalPurchases", "desc"],
+    null,
+    8
   );
   const { documents: rewardPurchases } = useCollection("rewardPurchases", [
     "referrerId",
     "==",
-    referrerDoc?.referrerId || "123",
+    referrerDoc.referrerId,
   ]);
   const [userAcceptedTerms, setUserAcceptedTerms] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [analytics, setAnalytics] = useState(null);
   const [textCopied, setTextCopied] = useState("");
+  const [paymentDetails, setPaymentDetails] = useState({
+    name: "",
+    pixKey: "",
+  });
+  const generateLink = useRef(false);
 
   const subscribeToRewardsProgram = async () => {
     if (!userAcceptedTerms) {
       setErrorMessage("Você precisa aceitar os termos para participar.");
       return;
     }
-    await createReferral(user.uid, { id: user.uid, acceptedTerms: true });
+    await updateReferral(user.uid, { acceptedTerms: true });
   };
 
   async function copyToClipboard(text, what) {
@@ -46,6 +59,19 @@ export default function Refer() {
     }
   }
 
+  const getRankColor = (index) => {
+    switch (index) {
+      case 0:
+        return "bg-yellow-500 text-white";
+      case 1:
+        return "bg-gray-500 text-white";
+      case 2:
+        return "bg-yellow-600 text-white";
+      default:
+        return "bg-gray-200 text-gray-900";
+    }
+  };
+
   const getVideoPurchases = () => {
     return rewardPurchases?.filter((purchase) =>
       purchase.referrer.includes("video")
@@ -58,27 +84,63 @@ export default function Refer() {
     ).length;
   };
 
+  const savePaymentDetails = async () => {
+    await updateReferral(user.uid, {
+      paymentDetails: paymentDetails,
+    });
+  };
+
+  useEffect(() => {
+    if (referrerDoc && referrerDoc.paymentDetails) {
+      setPaymentDetails(referrerDoc.paymentDetails);
+    }
+  }, [referrerDoc]);
+
   useEffect(() => {
     async function getLinkAnalytics() {
       const idToken = await user.getIdToken();
       const url =
         "https://us-central1-trading-app-e0773.cloudfunctions.net/getLinkAnalytics";
-      const response = await fetch(url, {
-        method: "POST",
-        body: JSON.stringify({
-          checkoutUrl: referrerDoc.checkoutLink,
-          videoUrl: referrerDoc.videoLink,
-        }),
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${idToken}`,
-        },
-      });
-      const data = await response.json();
-      setAnalytics(data);
+
+      try {
+        const response = await fetch(url, {
+          method: "POST",
+          body: JSON.stringify({
+            checkoutUrl: referrerDoc.checkoutLink,
+            videoUrl: referrerDoc.videoLink,
+          }),
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${idToken}`,
+          },
+        });
+        const data = await response.json();
+        setAnalytics(data);
+      } catch (err) {
+        console.error("Erro ao buscar dados de analytics:", err);
+      }
     }
-    if (referrerDoc) {
+    if (referrerDoc && referrerDoc.checkoutLink && referrerDoc.videoLink) {
       getLinkAnalytics();
+    }
+  }, [referrerDoc]);
+
+  useEffect(() => {
+    async function fixLinks() {
+      await updateReferral(user.uid, { regenerateLink: true });
+      console.log("ran fixLinks");
+    }
+    if (referrerDoc && referrerDoc.acceptedTerms) {
+      if (
+        !referrerDoc.checkoutLink &&
+        !referrerDoc.videoLink &&
+        generateLink.current === false
+      ) {
+        if (!referrerDoc.regenerateLink) {
+          generateLink.current = true;
+          fixLinks();
+        }
+      }
     }
   }, [referrerDoc]);
 
@@ -95,7 +157,7 @@ export default function Refer() {
 
       <Card className="mt-2.5 w-full">
         <CardContent className="p-5">
-          {referrerDoc ? (
+          {referrerDoc.acceptedTerms ? (
             <>
               <h3>Copie seus links abaixo e compartilhe para ganhar</h3>
               <p className="text-sm mt-5 mb-1.5">
@@ -160,6 +222,7 @@ export default function Refer() {
                   Link copiado para a área de transferência.
                 </p>
               ) : null}
+
               <div className="pt-1.5"></div>
             </>
           ) : (
@@ -192,6 +255,11 @@ export default function Refer() {
                   da titularidade do usuário participante deste Programa de
                   Recompensas.
                 </p>
+                <p className="mt-2.5 text-muted-foreground">
+                  4. Para estar habilitado a receber as comissões geradas pelas
+                  indicações válidas, você precisa ser um usuário do Solyd com
+                  um plano ativo.
+                </p>
                 <div className="mt-5 flex gap-1.5 items-center">
                   <Checkbox
                     id="terms"
@@ -222,6 +290,75 @@ export default function Refer() {
           )}
         </CardContent>
       </Card>
+      {referrerDoc.acceptedTerms && (
+        <Card className="mt-2.5 w-full">
+          <CardContent className="p-5">
+            <h3 className="mb-1.5">Dados para pagamento:</h3>
+            <div className="flex flex-col sm:flex-row gap-1.5">
+              <Input
+                type="text"
+                placeholder="Informe seu nome completo"
+                value={paymentDetails.name}
+                onChange={(e) =>
+                  setPaymentDetails({
+                    ...paymentDetails,
+                    name: e.target.value,
+                  })
+                }
+              />
+              <Input
+                type="text"
+                placeholder="Informe a sua chave Pix"
+                value={paymentDetails.pixKey}
+                onChange={(e) =>
+                  setPaymentDetails({
+                    ...paymentDetails,
+                    pixKey: e.target.value,
+                  })
+                }
+              />
+              <Button onClick={savePaymentDetails}>
+                Salvar dados para pagamento
+              </Button>
+            </div>
+            <div className="pt-1.5"></div>
+          </CardContent>
+        </Card>
+      )}
+      {referrerDoc.acceptedTerms && (
+        <Card className="mt-2.5 w-full">
+          <CardContent className="p-5">
+            <h3 className="mb-2.5">Ranking de Parceiros:</h3>
+            <ul className="flex flex-col gap-2.5">
+              {referrals &&
+                referrals.map((referral, index) => (
+                  <li
+                    key={referral.referrerId}
+                    className="flex items-center justify-between"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <span
+                        className={`${getRankColor(
+                          index
+                        )} py-1.5 px-3 rounded-sm`}
+                      >
+                        {index + 1}
+                      </span>
+                      <h3>
+                        @{referral.referrerId}{" "}
+                        {referral.referrerId === referrerDoc.referrerId
+                          ? "(você)"
+                          : ""}
+                      </h3>
+                    </div>
+                    <span>{referral.totalPurchases}</span>
+                  </li>
+                ))}
+            </ul>
+            <div className="pt-1.5"></div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

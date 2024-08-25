@@ -64,7 +64,7 @@ exports.onKirvanoWebhook = functions.https.onRequest(async (req, res) => {
               status_date: new Date(),
               platform: "kirvano",
             },
-            turma: 4,
+            new: true,
             risk: "medium",
           });
 
@@ -94,7 +94,7 @@ exports.onKirvanoWebhook = functions.https.onRequest(async (req, res) => {
             status_date: new Date(),
             platform: "kirvano",
           },
-          turma: 4,
+          new: true,
           risk: "medium",
         },
         { merge: true }

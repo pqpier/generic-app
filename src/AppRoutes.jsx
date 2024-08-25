@@ -7,7 +7,7 @@ import { ThemeProvider } from "./providers/ThemeProvider";
 import { useAuthContext } from "./hooks/useAuthContext";
 import Loading from "./components/Loading";
 import Profile from "./pages/Profile/Profile";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Toaster } from "@/shadcn/components/ui/toaster";
 import { UserDocProvider } from "./contexts/UserDocContext";
 import useMediaQuery from "./hooks/useMediaQuery";
@@ -17,35 +17,107 @@ import Help from "./pages/Help/Help";
 import Training from "./pages/Training/Training";
 import Refer from "./pages/Refer/Refer";
 import { ReferrerDocProvider } from "./contexts/ReferrerDocContext";
+import { db } from "./firebase/config";
+import { doc, onSnapshot } from "firebase/firestore";
+import Onboarding from "./pages/Onboarding/Onboarding";
+import Admin from "./pages/Admin/Admin";
 
 function AppRoutes() {
   const { user, authIsReady } = useAuthContext();
   const [rerender, setRerender] = useState(false);
-
+  const [onboarding, setOnboarding] = useState(null);
+  const [redirectToRoute, setRedirectToRoute] = useState(null);
+  const [userDoc, setUserDoc] = useState(null);
+  const [error, setError] = useState(null);
   const isMobile = useMediaQuery("(max-width: 640px)");
 
-  // useEffect(() => {
-  //   if (process.env.NODE_ENV === "development") return;
+  useEffect(() => {
+    let unsub = () => {};
 
-  //   if (authIsReady && user && !sessionStorage.getItem("pixelInitialized")) {
-  //     // Dados para AdvancedMatching
-  //     const advancedMatching = {
-  //       em: hashString(user.email),
-  //       external_id: hashString(user.uid, false),
-  //     };
-  //     const options = {
-  //       autoConfig: true,
-  //       debug: false,
-  //     };
-  //     ReactPixel.init("SEU_PIXEL_ID", advancedMatching, options); // TODO: Substituir "SEU_PIXEL_ID" pelo ID do seu pixel
-  //     ReactPixel.pageView();
+    const checkOnboarding = () => {
+      unsub = onSnapshot(
+        doc(db, "users", user.uid),
+        (docSnapshot) => {
+          if (docSnapshot.exists()) {
+            const userData = { ...docSnapshot.data(), id: docSnapshot.id };
+            setUserDoc(userData);
+            setError(null);
+            setOnboarding(userData.onboarding || 0);
+            setRedirectToRoute(
+              userData.redirectToRoute || { active: false, path: null }
+            );
+          } else {
+            setError("Dados não encontrados.");
+            setUserDoc(undefined);
+            setOnboarding(0);
+            setRedirectToRoute({ active: false, path: null });
+            console.log(
+              `Dados não encontrados. Collection: users, ID: ${user.uid}`
+            );
+          }
+        },
+        (err) => {
+          setError(err.message);
+          setUserDoc(undefined);
+          setOnboarding(0);
+          setRedirectToRoute({ active: false, path: null });
+          console.log(
+            "Erro ao ler documento da coleção:",
+            "users",
+            "com ID:",
+            user.uid
+          );
+          alert("Erro ao carregar onboarding.");
+        }
+      );
+    };
 
-  //     // Marcar como inicializado para esta sessão
-  //     sessionStorage.setItem("pixelInitialized", "true");
-  //   }
-  // }, [authIsReady, user]);
+    if (authIsReady && user) {
+      checkOnboarding();
+    }
+
+    return () => unsub();
+  }, [authIsReady, user]);
 
   if (!authIsReady) return <Loading />;
+
+  if (user && (onboarding === null || !userDoc)) return <Loading />;
+
+  if (user && onboarding > -1 && userDoc.new) {
+    return (
+      <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+        <div className="App flex flex-col sm:flex-row">
+          <BrowserRouter>
+            <Routes>
+              <Route
+                path="*"
+                element={
+                  <Onboarding userDoc={userDoc} onboarding={onboarding} />
+                }
+              />
+            </Routes>
+          </BrowserRouter>
+        </div>
+      </ThemeProvider>
+    );
+  }
+
+  if (user && redirectToRoute.active) {
+    return (
+      <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+        <div className="App flex flex-col sm:flex-row">
+          <BrowserRouter>
+            <Routes>
+              <Route
+                path="*"
+                element={<Training redirectToRoute={redirectToRoute} />}
+              />
+            </Routes>
+          </BrowserRouter>
+        </div>
+      </ThemeProvider>
+    );
+  }
 
   return (
     <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
@@ -69,12 +141,18 @@ function AppRoutes() {
                     <Route path="/treinamento" element={<Training />} />
                     <Route path="/indique" element={<Refer />} />
                     <Route
-                      path="/account"
+                      path="/conta"
                       element={
                         <Profile
                           rerender={rerender}
                           setRerender={setRerender}
                         />
+                      }
+                    />
+                    <Route
+                      path="/perfil"
+                      element={
+                        <Onboarding userDoc={userDoc} onboarding={onboarding} />
                       }
                     />
                     <Route path="/help" element={<Help />} />

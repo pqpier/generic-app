@@ -1,4 +1,3 @@
 # React + Vite
 
-# amazing-app
-# solydapp
+# generic-app

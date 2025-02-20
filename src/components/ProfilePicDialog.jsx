@@ -17,9 +17,12 @@ import { reload, updateProfile } from "firebase/auth";
 import { useState, useRef, useEffect } from "react";
 import Cropper from "react-easy-crop";
 import getCroppedImg from "./CropImage";
+import { useUserContext } from "@/hooks/useUserContext";
+import Loading from "./Loading";
 
 export function ProfilePicDialog({ children, setRerender }) {
   const { user } = useAuthContext();
+  const { userDoc } = useUserContext();
   const [isPending, setIsPending] = useState(false);
   const [open, setOpen] = useState(false);
   const [crop, setCrop] = useState({ x: 0, y: 0 });
@@ -116,13 +119,21 @@ export function ProfilePicDialog({ children, setRerender }) {
     };
   }, []);
 
+  if (!userDoc) return <Loading />;
+
+  const isLatam = userDoc.latam;
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Foto de perfil</DialogTitle>
-          <DialogDescription>Altere a sua foto de perfil.</DialogDescription>
+          <DialogDescription>
+            {isLatam
+              ? "Cambia tu foto de perfil"
+              : "Altere a sua foto de perfil."}
+          </DialogDescription>
         </DialogHeader>
         {!localImageUrl && (
           <div
@@ -166,7 +177,13 @@ export function ProfilePicDialog({ children, setRerender }) {
         <DialogFooter className="mt-1">
           <Button disabled={isPending} onClick={uploadCroppedImage}>
             {isPending && <ReloadIcon className="mr-2 animate-spin" />}
-            {isPending ? "Salvando a foto..." : "Salvar nova foto"}
+            {isPending
+              ? isLatam
+                ? "Guardando la foto..."
+                : "Salvando a foto..."
+              : isLatam
+              ? "Guardar nueva foto"
+              : "Salvar nova foto"}
           </Button>
         </DialogFooter>
       </DialogContent>

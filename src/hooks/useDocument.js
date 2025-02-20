@@ -1,12 +1,10 @@
 import { useState, useEffect } from "react";
 import { doc, onSnapshot } from "firebase/firestore";
 import { db } from "../firebase/config";
-import { useFirestore } from "./useFirestore";
 
 export const useDocument = (coll, id) => {
   const [document, setDocument] = useState(null);
   const [error, setError] = useState(null);
-  const { addDocument: logError } = useFirestore("errors");
 
   useEffect(() => {
     if (!coll || !id) return;

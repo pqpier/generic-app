@@ -2,37 +2,18 @@ import { HamburgerMenuIcon, PersonIcon, BellIcon } from "@radix-ui/react-icons";
 import React, { useState } from "react";
 import { getToken } from "firebase/messaging";
 import { messaging } from "@/firebase/config";
-import { ProfilePicDialog } from "./ProfilePicDialog";
-import getInitials from "@/utils/getInitials";
 import { useAuthContext } from "@/hooks/useAuthContext";
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@/shadcn/components/ui/avatar";
-import { routeOptions } from "@/constants/constants.jsx";
-import { useLogout } from "@/hooks/useLogout";
-import { useNavigate } from "react-router-dom";
-import {
-  Sheet,
-  SheetContent,
-  SheetTrigger,
-} from "@/shadcn/components/ui/sheet";
-import { Separator } from "@/shadcn/components/ui/separator";
 import { useUserContext } from "@/hooks/useUserContext";
 import Loading from "./Loading";
 import { useDocument } from "@/hooks/useDocument";
 import useIsPWA from "@/hooks/useIsPWA";
-import { isAfter } from "date-fns";
 import Logo from "./Logo";
 
-export default function Topbar({ setRerender }) {
+export default function TopbarMobile({ setRerender }) {
   const { userDoc } = useUserContext();
   const isPwa = useIsPWA();
   const [open, setOpen] = useState(false);
   const { user } = useAuthContext();
-  const { logout } = useLogout();
-  const navigate = useNavigate();
 
   const { document: tokenDoc } = useDocument("tokens", user.uid);
 
@@ -57,7 +38,7 @@ export default function Topbar({ setRerender }) {
 
       //We can send token to server
       console.log("Token generated : ", token);
-      await fetch("TODO: Change URL", {
+      await fetch("https://suaapi.com/token", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -76,17 +57,9 @@ export default function Topbar({ setRerender }) {
   if (!userDoc) return <Loading />;
 
   return (
-    <div className="fixed w-full bg-white border border-border h-[72px] flex justify-between items-center px-5 z-[50]">
-      <Logo size={172} />
-      <div className="flex gap-2.5">
-        <ProfilePicDialog setRerender={setRerender}>
-          <Avatar className="h-12 w-12" role="button">
-            <AvatarImage src={user.photoURL?.replace("=s96-c", "")} />
-            <AvatarFallback className="bg-[#dfdfff] text-[#820ad1]">
-              {getInitials(userDoc.name)}
-            </AvatarFallback>
-          </Avatar>
-        </ProfilePicDialog>
+    <div className="fixed w-full bg-muted border border-border h-16 flex justify-between items-center">
+      <div className="w-full flex justify-center">
+        <Logo />
       </div>
     </div>
   );

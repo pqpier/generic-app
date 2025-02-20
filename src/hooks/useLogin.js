@@ -29,8 +29,8 @@ export const useLogin = () => {
       const res = await signInWithPopup(auth, googleProvider);
 
       if (action === "login") {
-        const userRef = doc(db, "users", res.user.uid);
-        await updateDoc(userRef, { online: true });
+        // const userRef = doc(db, "users", res.user.uid);
+        // await updateDoc(userRef, { online: true });
         dispatch({ type: "LOGIN", payload: res.user });
       } else {
         let attempts = 0;
@@ -90,9 +90,9 @@ export const useLogin = () => {
     try {
       const res = await signInWithEmailAndPassword(auth, email, password);
 
-      const userRef = doc(db, "users", res.user.uid);
+      // const userRef = doc(db, "users", res.user.uid);
 
-      await updateDoc(userRef, { online: true });
+      // await updateDoc(userRef, { online: true });
 
       dispatch({ type: "LOGIN", payload: res.user });
 

@@ -19,9 +19,9 @@ export default defineConfig({
         enabled: true,
       },
       manifest: {
-        name: "Solyd Trading",
-        short_name: "Solyd",
-        description: "Negocie no mercado global com o poder da IA.",
+        name: "Generic App", // TODO: Informar o nome do seu app
+        short_name: "GenericApp", // TODO: Informar o nome do seu app
+        description: "A generic app", // TODO: Alterar a descrição
         theme_color: "#000000",
         icons: [
           {

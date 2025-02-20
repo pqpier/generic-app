@@ -1,6 +1,7 @@
 {
   "projects": {
-    "trading-app": "trading-app-e0773"
+    "default": "template-90106",
+    "ignore": "Altere acima com o código do seu projeto"
   },
   "targets": {},
   "etags": {}

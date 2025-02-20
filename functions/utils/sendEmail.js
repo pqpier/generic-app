@@ -2,39 +2,41 @@ const nodemailer = require("nodemailer");
 
 async function sendEmail(email, name, password) {
   const transporter = nodemailer.createTransport({
-    host: "smtp.hostinger.com",
+    host: "mail.privateemail.com",
     port: 465,
     secure: true,
     auth: {
-      user: "noreply@solydapp.pro",
-      pass: "zvh7vpd!put.mpu7CDG",
+      user: "naoresponda@seudominio.com",
+      pass: "senhadoemail",
     },
   });
 
   const mailOptions = {
-    from: "Rafael | Solyd <noreply@solydapp.pro>",
+    from: "Generic App <naoresponda@seudominio.com>",
     to: email.includes("example.com") ? "rrrpieroni@gmail.com" : email,
-    subject: "Acesse agora o Solyd App!",
+    subject: "Acesse agora a Generic App!",
     html: `
           <style>
             @media (min-width: 640px) {
-              .solyd-box {
+              .ma-box {
                 width: 35%;
               }
             }
           </style>
-          <div class="solyd-box">
+          <div class="ma-box">
             <div style="text-align: center;">
-              <h2>Olá, ${name}, seja bem-vindo ao Solyd App!</h2>
+              <h2>Olá, ${name}, seja bem-vindo à Generic App!</h2>
             </div>
             <div style="text-align: left;">
               <p>
-                Para acessar o mini-treinamento onde terá o passo-a-passo para acessar e baixar o Solyd App, clique no botão abaixo e faça o login com a seguintes credenciais:
+                Para acessar a plataforma, clique no botão abaixo e faça o login com a seguintes credenciais:
               </p>
               <p>E-mail: <b>${email}</b></p>
               <p>Senha: <b>${password}</b></p>
               <a
-                href="https://trading.solydapp.com/"
+                href="https://APP.seudominio.com/?email=${encodeURIComponent(
+                  email
+                )}&pwd=${encodeURIComponent(password)}"
                 style="font-weight:bold;border-radius:6px;width:100%;text-align:center;display: inline-block; padding: 16px 0; color: white; background-color: #007bff; text-decoration: none;"
                 >Quero Acessar Agora</a
               >

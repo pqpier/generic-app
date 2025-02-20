@@ -4,7 +4,11 @@ import { useTheme } from "@/providers/ThemeProvider";
 import { useNavigate } from "react-router-dom";
 
 export default function Logo({ size, justify }) {
-  const width = size === "sm" ? "w-40" : "w-56";
+  const width = size || 190;
+  const logoLightTheme =
+    "https://media.atomicatpages.net/u/0BVrOWOoOHYYehGtCMVYjXF1KZk1/Pictures/3jvna/YyJdnu8769826.png";
+  const logoDarktheme =
+    "https://media.atomicatpages.net/u/0B1zizlSngfFNS7TlZ858AKj77o1/Pictures/BautmI9164143.png";
   const { theme } = useTheme();
 
   const navigate = useNavigate();
@@ -13,9 +17,11 @@ export default function Logo({ size, justify }) {
 
   return (
     <div role="button" onClick={navigateToHome}>
-      <h2 className="font-league text-4xl tracking-tighter text-foreground">
-        solyd<span className=" text-[#00FFA3]">.</span>
-      </h2>
+      <img
+        src={theme === "dark" ? logoDarktheme : logoLightTheme}
+        style={{ width: width }}
+        alt=""
+      />
     </div>
   );
 }

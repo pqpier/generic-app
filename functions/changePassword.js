@@ -3,7 +3,7 @@ const admin = require("firebase-admin");
 const express = require("express");
 const cors = require("cors");
 
-const FIREBASE_API_KEY = functions.config().project.api_key;
+const FIREBASE_API_KEY = functions.config().project.api_key; // TODO: Definir API key do projeto
 
 const app = express();
 
@@ -20,10 +20,7 @@ const corsOptions = {
     const allowedOrigins = [
       "http://localhost:5173",
       "http://127.0.0.1:5173",
-      "http://localhost:5174",
-      "https://127.0.0.1:5174",
-      "https://template-90106.web.app",
-      "https://trading.solydapp.com",
+      "https://app.seudominioaqui.com", // TODO: Altere para o domínio do seu app
     ];
     if (!origin || allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);

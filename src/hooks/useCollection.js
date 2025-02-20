@@ -17,10 +17,12 @@ export const useCollection = (
   _orderBy,
   _query2,
   _limit,
-  isGroup
+  isGroup,
+  fetchOnce
 ) => {
   const [documents, setDocuments] = useState(null);
   const [error, setError] = useState(null);
+  const hasFetched = useRef(false);
 
   // If we don't use useRef --> infinite loop, because _query is an array and it's 'different' on every function call
   const q = useRef(_query).current;
@@ -28,6 +30,8 @@ export const useCollection = (
   const q2 = useRef(_query2).current;
 
   useEffect(() => {
+    if (fetchOnce && hasFetched.current) return;
+
     // let ref = collection(db, coll)
     let ref;
     ref = isGroup ? collectionGroup(db, coll) : collection(db, coll);
@@ -59,6 +63,7 @@ export const useCollection = (
         // Update state
         setDocuments(results);
         setError(null);
+        hasFetched.current = true;
       },
       (error) => {
         console.log("Erro na coleção ", coll);

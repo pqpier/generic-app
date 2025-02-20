@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState, useRef } from "react";
 import { useCollection } from "@/hooks/useCollection";
 import { useDocument } from "@/hooks/useDocument";
 import { useNavigate } from "react-router-dom";
@@ -6,18 +6,22 @@ import { useQuery } from "@/hooks/useQuery";
 import Row from "@/reusable/Row";
 import { useAuthContext } from "@/hooks/useAuthContext";
 import {
-  ArrowLeftIcon,
-  ArrowRightIcon,
   CheckIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
+  ClockIcon,
 } from "@radix-ui/react-icons";
 import "./VideoPlayer.css";
 import VideoPlayer from "./VideoPlayer";
 import { Button } from "@/shadcn/components/ui/button";
 import { useFirestore } from "@/hooks/useFirestore";
+import { useUserContext } from "@/hooks/useUserContext";
 
-export default function Training({ redirectToRoute }) {
+export default function Training({
+  redirectToRoute,
+  sidebarExpanded,
+  scrollToTop,
+}) {
   const navigate = useNavigate();
   const { user } = useAuthContext();
   const { document: course } = useDocument("courses", "9DwWIAtShVCPXyRPSbqF");
@@ -30,7 +34,10 @@ export default function Training({ redirectToRoute }) {
     "9DwWIAtShVCPXyRPSbqF",
   ]);
 
+  const { userDoc } = useUserContext();
+
   const [selectedLesson, setSelectedLesson] = useState(null);
+  const [isPaused, setIsPaused] = useState(true);
 
   const { documents: progressDocs } = useCollection(
     "progress",
@@ -40,9 +47,11 @@ export default function Training({ redirectToRoute }) {
   );
 
   const watchLesson = (moduleId, lesson) => {
+    setIsPaused(true);
     localStorage.setItem(`lastModuleWatched-9DwWIAtShVCPXyRPSbqF`, moduleId);
     localStorage.setItem(`lastWatchedLesson-9DwWIAtShVCPXyRPSbqF`, lesson.id);
     setSelectedLesson(lesson);
+    scrollToTop.current.scrollIntoView({ behavior: "smooth" });
   };
 
   const previousLesson = () => {
@@ -140,12 +149,14 @@ export default function Training({ redirectToRoute }) {
         const firstLesson = lessons.find(
           (l) => l.moduleId === nextModule.id && l.index === 0
         );
+        setIsPaused(true);
         watchLesson(nextModule.id, firstLesson);
         return;
       }
     }
 
     if (nextLesson) {
+      setIsPaused(true);
       watchLesson(selectedLesson.moduleId, nextLesson);
     }
   };
@@ -189,79 +200,180 @@ export default function Training({ redirectToRoute }) {
     }
   }, [redirectToRoute]);
 
-  if (!course || !selectedLesson) return;
+  if (!course || !selectedLesson || !userDoc) return;
+
+  const isLatam = userDoc.latam;
 
   return (
-    <div className="w-full sm:flex sm:gap-6 sm:p-5">
+    <div
+      className={`-mt-16 ${
+        sidebarExpanded ? "sm:-mt-[16px] " : "sm:-mt-[16px] "
+      }w-full sm:flex sm:gap-6`}
+    >
       <div className="sm:w-2/3 mt-12 sm:mt-0">
-        <div className="w-full text-center flex sm:hidden divide-x divide-white/20">
-          <div
-            className="w-1/2 py-2 px-4 flex gap-2 items-center mb-px cursor-pointer"
-            onClick={previousLesson}
-          >
-            <ArrowLeftIcon className="mt-px h-5 w-5" /> <p>Anterior</p>
-          </div>
-          <div
-            className="w-1/2 py-2 px-4 flex gap-2 items-center justify-end mb-px cursor-pointer"
-            onClick={nextLesson}
-          >
-            <p>Próxima</p>
-            <ArrowRightIcon className="mt-px h-5 w-5" />
-          </div>
-        </div>
-        <VideoPlayer videoId={selectedLesson.videoId} />
-        <div className="w-full flex justify-end sm:justify-between px-2 sm:px-0 mt-2.5">
-          <Button
-            className="block sm:hidden"
-            size="sm"
-            onClick={completeLesson}
-          >
-            <Row className="gap-0.5 items-center">
-              <CheckIcon />
-              Marcar como vista
-            </Row>
-          </Button>
-
-          <Button className="hidden sm:block" onClick={completeLesson}>
-            <Row className="gap-0.5 items-center">
-              <CheckIcon className="h-5 w-5" />
-              Marcar como vista
-            </Row>
-          </Button>
-
-          <div className="flex gap-2.5">
-            <Button
-              className="hidden sm:block"
-              variant="secondary"
-              size="lg"
-              onClick={previousLesson}
-            >
-              <Row className="gap-2.5 items-center pl-2 text-md">
-                <ChevronLeftIcon className="h-5 w-5" />
-                Anterior
-              </Row>
-            </Button>
-            <Button
-              className="hidden sm:block"
-              variant="secondary"
-              size="lg"
-              onClick={nextLesson}
-            >
-              <Row className="gap-2.5 items-center pl-2 text-md">
-                Próxima <ChevronRightIcon className="h-5 w-5" />
+        <VideoPlayer
+          videoId={isLatam ? selectedLesson.latamId : selectedLesson.videoId}
+          videoThumb={selectedLesson.videoThumb}
+          isPaused={isPaused}
+          setIsPaused={setIsPaused}
+        />
+        <div className="w-full flex items-center justify-between px-2 sm:px-0 sm:mt-2.5">
+          <h3 className="sm:hidden font-medium text-[17px]">
+            {selectedLesson.title}
+          </h3>
+          <div className="sm:w-full flex justify-between items-center">
+            <div className="hidden sm:flex gap-2.5">
+              <Button variant="secondary" size="lg" onClick={previousLesson}>
+                <Row className="gap-2.5 items-center pl-2 text-md">
+                  <ChevronLeftIcon className="h-5 w-5" />
+                  Anterior
+                </Row>
+              </Button>
+              <Button
+                className="hidden sm:block"
+                variant="secondary"
+                size="lg"
+                onClick={nextLesson}
+              >
+                <Row className="gap-2.5 items-center pl-2 text-md">
+                  {isLatam ? "Siguiente" : "Próxima"}{" "}
+                  <ChevronRightIcon className="h-5 w-5" />
+                </Row>
+              </Button>
+            </div>
+            <Button size="md" onClick={completeLesson}>
+              <Row className="gap-0.5 items-center">
+                <CheckIcon className="w-5 h-5" />
+                <p className="hidden sm:block">Marcar como concluída</p>
+                <p className="sm:hidden">Concluir aula</p>
               </Row>
             </Button>
           </div>
         </div>
-        <div className="mt-5 px-2.5">
-          <h3 className="text-lg font-medium mb-4">{selectedLesson.title}</h3>
+        <div className="hidden sm:block sm:mt-5 px-2.5">
+          <h3 className="text-lg font-medium mb-4">
+            {isLatam ? selectedLesson.titleLatam : selectedLesson.title}
+          </h3>
           <div
             className="font-light"
-            dangerouslySetInnerHTML={{ __html: selectedLesson.description }}
+            dangerouslySetInnerHTML={{
+              __html: isLatam
+                ? selectedLesson.descriptionLatam
+                : selectedLesson.description,
+            }}
           ></div>
+          {selectedLesson.title === "A matemática da prosperidade" && (
+            <div
+              role="button"
+              onClick={async () => {
+                const meaningfulActions = userDoc.meaningfulActions || {};
+                await updateUser(user.uid, {
+                  meaningfulActions: {
+                    ...meaningfulActions,
+                    downloadedSheet: {
+                      status: true,
+                      status_date: new Date().getTime(),
+                    },
+                  },
+                });
+                window.open(
+                  "https://firebasestorage.googleapis.com/v0/b/steady-gainz.firebasestorage.app/o/documentos%2FOrc%CC%A7amento%20Pessoal.xlsx?alt=media&token=9f8d4f3c-83f4-4815-a63d-944796f19a38",
+                  "_blank"
+                );
+              }}
+            >
+              <p>Clique no link abaixo para baixar a planilha</p>
+              <p className="text-brand underline">Clique aqui para baixar</p>
+            </div>
+          )}
+          {selectedLesson.title === "Abra sua conta na corretora" && (
+            <TutorialDialog tutorialName="OpenAccount">
+              <div
+                role="button"
+                onClick={async () => {
+                  const meaningfulActions = userDoc.meaningfulActions || {};
+                  const accountTutorial =
+                    meaningfulActions.accountTutorial || {};
+
+                  if (accountTutorial.open?.status) {
+                    return;
+                  }
+
+                  await updateUser(user.uid, {
+                    meaningfulActions: {
+                      ...meaningfulActions,
+                      accountTutorial: {
+                        ...accountTutorial,
+                        open: {
+                          status: true,
+                          status_date: new Date().getTime(),
+                        },
+                        step: 1,
+                      },
+                    },
+                  });
+                }}
+              >
+                <p className="text-brand underline">
+                  Clique aqui para ver o tutorial
+                </p>
+              </div>
+            </TutorialDialog>
+          )}
+          {selectedLesson.title === "Comece a investir com IA" && (
+            <TutorialDialog tutorialName="CopyTrading">
+              <div role="button">
+                <p className="text-brand underline">
+                  Clique aqui para ver o tutorial
+                </p>
+              </div>
+            </TutorialDialog>
+          )}
+        </div>
+        <div className="pl-2 sm:hidden">
+          {selectedLesson.title === "Abra sua conta na corretora" && (
+            <TutorialDialog tutorialName="OpenAccount">
+              <div role="button">
+                <p className="text-brand underline">
+                  Clique aqui para ver o tutorial
+                </p>
+              </div>
+            </TutorialDialog>
+          )}
+          {selectedLesson.title === "Comece a investir com IA" && (
+            <TutorialDialog tutorialName="CopyTrading">
+              <div role="button">
+                <p className="text-brand underline">
+                  Clique aqui para ver o tutorial
+                </p>
+              </div>
+            </TutorialDialog>
+          )}
+        </div>
+        <div className="my-5 flex gap-2.5 sm:hidden">
+          <Button
+            variant="secondary"
+            className="w-full"
+            onClick={previousLesson}
+          >
+            <Row className="gap-2.5 items-center pl-2 text-md">
+              <ChevronLeftIcon className="h-5 w-5" />
+              Aula anterior
+            </Row>
+          </Button>
+          <Button variant="secondary" className="w-full" onClick={nextLesson}>
+            <Row className="gap-2.5 items-center pl-2 text-md">
+              {isLatam ? "Siguiente" : "Próxima aula"}{" "}
+              <ChevronRightIcon className="h-5 w-5" />
+            </Row>
+          </Button>
         </div>
       </div>
-      <div className="sm:w-1/3 sm:mr-5 px-2.5 mt-16 sm:mt-0">
+      <div
+        className={`${
+          sidebarExpanded ? "sm:mr-5" : "sm:mr-0"
+        } sm:w-1/3 px-2.5 mt-8 sm:mt-0`}
+      >
         <div className="w-full">
           {course?.modules.map((module, idx) => {
             return (
@@ -297,18 +409,31 @@ export default function Training({ redirectToRoute }) {
                             </div>
                           )}
 
-                          <img
+                          {/* <img
                             src={lesson.videoThumb}
                             alt="thumb da aula"
-                            className="w-16 h-9 rounded-md border border-border"
-                          />
+                            className="w-12 h-10 rounded-md border border-border"
+                          /> */}
 
-                          {lesson.title}
-                          {lesson.new && (
-                            <div className="absolute text-xs bg-red-900/40 text-red-500 font-medium pl-1.5 pr-1 py-0.5 rounded-full top-2 right-2">
-                              Atualizada 🔥{" "}
+                          <div className="sm:w-5"></div>
+
+                          <div>
+                            <p className="relative">
+                              {lesson.title}
+                              {lesson.status === "hot" && (
+                                <span className="absolute text-xs text-red-500 rounded-full -top-2 -right-3">
+                                  🔥
+                                </span>
+                              )}
+                            </p>
+                            <p className="text-muted-foreground text-sm">
+                              {lesson.subtitle}
+                            </p>
+                            <div className="flex items-center gap-1.5 mt-2 bg-brand/5 text-brand w-fit text-xs px-2 py-0.5 rounded-lg">
+                              <ClockIcon className="h-3 w-3" />
+                              <p>{lesson.duration || "3 min"}</p>
                             </div>
-                          )}
+                          </div>
                         </div>
                       ))}
                   </div>
@@ -318,6 +443,7 @@ export default function Training({ redirectToRoute }) {
           })}
         </div>
       </div>
+      <div className="py-24"></div>
     </div>
   );
 }

@@ -8,12 +8,12 @@ import { initializeAppCheck, ReCaptchaV3Provider } from "firebase/app-check";
 
 // TODO: Colocar o firebaseConfig do seu app aqui abaixo
 const firebaseConfig = {
-  apiKey: "AIzaSyABmkui1cP3UhOpMeeIaC0RXeNLl2gWiOU",
-  authDomain: "trading-app-e0773.firebaseapp.com",
-  projectId: "trading-app-e0773",
-  storageBucket: "trading-app-e0773.appspot.com",
-  messagingSenderId: "299864437372",
-  appId: "1:299864437372:web:4a646ea11fb3f365978ff9",
+  apiKey: "AIzaSyATBmIbOGfKPYmXY2UwBstIhqV_M00pBgI",
+  authDomain: "template-90106.firebaseapp.com",
+  projectId: "template-90106",
+  storageBucket: "template-90106.appspot.com",
+  messagingSenderId: "692560077016",
+  appId: "1:692560077016:web:8f07639aba2297dab7b7ad",
 };
 
 // Initialize Firebase

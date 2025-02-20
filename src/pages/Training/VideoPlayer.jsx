@@ -4,11 +4,11 @@ import React, { useEffect, useState } from "react";
 import YouTube from "react-youtube";
 import { Slider } from "@/shadcn/components/ui/slider";
 
-const VideoPlayer = ({ videoId }) => {
+const VideoPlayer = ({ videoId, videoThumb, isPaused, setIsPaused }) => {
   const [player, setPlayer] = useState(null);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
-  const [isPaused, setIsPaused] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   const opts = {
     height: "390",
@@ -44,13 +44,17 @@ const VideoPlayer = ({ videoId }) => {
   };
 
   const togglePlayPause = () => {
+    setLoading(true);
     if (player) {
       if (isPaused) {
+        setIsPaused(false);
         player.playVideo();
       } else {
+        setIsPaused(true);
         player.pauseVideo();
       }
     }
+    setLoading(false);
   };
 
   const toggleFullScreen = () => {
@@ -93,11 +97,19 @@ const VideoPlayer = ({ videoId }) => {
 
   return (
     <div className="relative">
+      <img
+        className={`w-full absolute ${
+          isPaused || loading ? "absolute" : "hidden"
+        }`}
+        src={videoThumb}
+        alt="thumb"
+      />
+
       <YouTube
         videoId={videoId}
         opts={opts}
         iframeClassName="vds-youtube"
-        className="youtube-container"
+        className={`youtube-container ${isPaused ? "invisible" : ""}`}
         onReady={onPlayerReady}
         onStateChange={onPlayerStateChange}
       />
@@ -106,7 +118,7 @@ const VideoPlayer = ({ videoId }) => {
         style={{ width: getProgress() }}
       ></div> */}
       <Slider
-        className="absolute z-30 bottom-0 left-0 w-full"
+        className="absolute z-30 bottom-0 left-0 w-full rounded-b-sm"
         defaultValue={[getProgress()]}
         value={[getProgress()]}
         max={100}
@@ -114,12 +126,12 @@ const VideoPlayer = ({ videoId }) => {
         onValueChange={(value) => handleSliderChange(value[0])}
       />
       <div
-        className="top-0 left-0 z-20 absolute h-full w-full"
+        className="top-0 left-0 z-20 absolute h-full w-full cursor-pointer"
         onClick={togglePlayPause}
       ></div>
       {isPaused && (
         <button
-          className="h-36 w-40 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-green-500/95 p-2 gap-2 rounded-lg flex flex-col justify-center items-center"
+          className="h-40 w-44 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-brand/75 text-white p-2 gap-2 rounded-lg flex flex-col justify-center items-center"
           onClick={togglePlayPause}
         >
           <PlayCircleIcon className="h-20 w-20" />
@@ -127,7 +139,7 @@ const VideoPlayer = ({ videoId }) => {
         </button>
       )}
       <button
-        className={`absolute top-2 right-2 bg-white/10 p-2 rounded-md flex gap-2 ${
+        className={`absolute top-2 right-2 bg-white/75 p-2 rounded-md flex gap-2 ${
           isPaused ? "" : "z-30"
         }`}
         onClick={toggleFullScreen}

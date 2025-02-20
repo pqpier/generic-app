@@ -17,7 +17,7 @@ const corsOptions = {
     const allowedOrigins = [
       "http://localhost:5173",
       "http://127.0.0.1:5173",
-      "https://trading.solydapp.com",
+      "https://app.seudominio.com", // TODO: Alterar para o seu domínio
     ];
     if (!origin || allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);

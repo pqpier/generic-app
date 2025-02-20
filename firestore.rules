@@ -3,7 +3,7 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     function isAdmin() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.admin == 'ijsaji88aadj'; // TODO: Altera
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.admin == 'XXX'; // TODO: Alterar para o seu próprio ID de administrador
     }
     function isOwner() {
       return request.auth.uid == resource.data.ownerId || request.auth.uid == resource.data.userId;
@@ -47,12 +47,6 @@ service cloud.firestore {
       allow update: if false;
       allow read: if isSignedIn() && isPaid();
     }
-    match /trades/{tradeId} {
-      allow delete: if false;
-      allow create: if isSignedIn() && isPaid();
-      allow update: if isSignedIn() && isOwner() && isPaid();
-      allow read: if isSignedIn() && isOwner() && isPaid();
-    }
     match /progress/{progressId} {
       allow read, write: if true;
     }
@@ -61,15 +55,6 @@ service cloud.firestore {
     }
     match /courses/{courseId} {
       allow read, write: if isSignedIn() && isPaid();
-    }
-    match /referrals/{referrerId} {
-      allow read: if isSignedIn() && isPaid();
-      allow update: if isSignedIn() && isPaid() && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['id', 'referrerId', 'checkoutLink', 'videoLink', 'createdAt']);
-      allow create, delete: if false;
-    }
-    match /rewardPurchases/{rewardPurchasesId} {
-      allow read: if isSignedIn() && isPaid();
-      allow create, update, delete: if false;
     }
     match /onboarding/{onboardingId} {
       allow read, create: if isSignedIn() && isPaid();

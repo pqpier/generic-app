@@ -61,15 +61,18 @@ export default function Login() {
     <div className="flex flex-col-reverse xl:flex-row 2xl:gap-20 xl:h-screen w-full xl:px-20 2xl:px-40 xl:py-20 2xl:py-0">
       <div className="xl:w-1/2 2xl:h-[50%] my-auto bg-muted rounded-xl px-5 sm:p-12 py-8 flex justify-center items-center">
         <div>
-          <Logo />
+          <Logo size={240} />
           <h2 className="mt-12 sm:mt-10 2xl:mt-16 text-4xl leading-[44px] sm:leading-[50px] font-medium">
-            Negocie nos mercados globais com o poder da Inteligência Artificial.
+            Headline
           </h2>
+          <h3 className="mt-12 sm:mt-2 2xl:mt-4 text-lg leading-[44px] sm:leading-[24px] font-normal">
+            Subheadline
+          </h3>
           <p className="mt-4 sm:mt-6 2xl:mt-10 text-muted-foreground">
-            Receba Oportunidades de Negociação em tempo real para simplesmente
-            copiar e colar e obter lucros diários em dólar. Utilize nossa
-            estratégia antivolatilidade para realizar dezenas de operações por
-            dia e lucrar com segurança.
+            Lorem ipsum dolor sit amet, consectetur adipisicing elit. Recusandae
+            quisquam dolorum atque perspiciatis blanditiis ea, perferendis
+            nesciunt magni sit sapiente quod magnam quasi fugiat hic facilis
+            voluptate quae molestiae soluta.
           </p>
           {/* <div className="bg-foreground text-background p-5 sm:p-8 rounded-xl mt-[8%] leading-6 2xl:leading-8">
             Lorem ipsum dolor sit amet, consectetur adipisicing elit. Eveniet

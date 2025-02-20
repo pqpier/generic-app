@@ -24,49 +24,24 @@ import { useUserContext } from "@/hooks/useUserContext";
 import { getToken } from "firebase/messaging";
 import { messaging } from "@/firebase/config";
 import { useDocument } from "@/hooks/useDocument";
+import { isAfter } from "date-fns";
+import { LogOutIcon, UserIcon } from "lucide-react";
+import useMediaQuery from "@/hooks/useMediaQuery";
 
-export default function Sidebar({ rerender, setRerender }) {
+export default function Sidebar({
+  rerender,
+  setRerender,
+  sidebarExpanded,
+  setSidebarExpanded,
+  isWatching,
+  setIsWatching,
+}) {
   const navigate = useNavigate();
+  const isWideScreen = useMediaQuery("(min-width: 1920px)");
   const { logout, isPending } = useLogout();
   const { user } = useAuthContext();
   const { userDoc } = useUserContext();
   const [activeRoute, setActiveRoute] = useState(0);
-  const { document: tokenDoc } = useDocument("tokens", user.uid);
-
-  async function requestPermission() {
-    //requesting permission using Notification API
-    const permission = await Notification.requestPermission();
-
-    let authToken;
-    try {
-      authToken = await user.getIdToken(true);
-    } catch (errToken) {
-      alert("Erro ao obter token de autenticação.");
-    }
-
-    if (permission === "granted") {
-      const token = await getToken(messaging, {
-        vapidKey:
-          "BJaZkU7IEQWsEg9YpG_cryhAbGCyc8btkFIPaKKoeZ-QXNHP9ZYfI5-1uaeeDyfXqzzF-f6jAwtTbTb78bvAu2k",
-      });
-
-      //We can send token to server
-      console.log("Token generated : ", token);
-      await fetch("https://api.solydapp.com/v1/save-token", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: "Bearer " + authToken,
-        },
-        body: JSON.stringify({
-          token: token,
-        }),
-      });
-    } else if (permission === "denied") {
-      //notifications are blocked
-      alert("Você recusou a permissão para notificações.");
-    }
-  }
 
   const handleLogout = () => {
     logout();
@@ -75,82 +50,74 @@ export default function Sidebar({ rerender, setRerender }) {
   if (!userDoc) return <Loading />;
 
   return (
-    <nav className="relative overflow-y-auto min-h-[calc(100vh_-_64px)] hidden sm:flex sm:flex-col sm:justify-between h-full w-[250px] bg-background border border-border">
+    <nav
+      className={`${
+        sidebarExpanded ? "w-[282px]" : "w-[88px]"
+      } bg-white transition-all relative overflow-y-auto min-h-[calc(100vh_-_120px)] hidden sm:flex sm:flex-col sm:justify-between h-full border-none`}
+    >
       {isPending && <Loading />}
-      <div className="bg-background fixed h-[calc(100vh_-_96px)] w-[248px] sm:flex-grow sm:flex sm:flex-col sm:justify-between">
-        <div>
-          <div className="py-5 pl-5">
-            <Logo size="sm" />
-          </div>
-          <div className="flex items-center gap-3 p-5">
-            <ProfilePicDialog setRerender={setRerender}>
-              <Avatar className="h-12 w-12" role="button">
-                <AvatarImage src={user.photoURL?.replace("=s96-c", "")} />
-                <AvatarFallback className="bg-primary text-secondary">
-                  {getInitials(user.displayName)}
-                </AvatarFallback>
-              </Avatar>
-            </ProfilePicDialog>
+      <div
+        className={`${
+          sidebarExpanded ? "w-[282px]" : "w-[88px]"
+        } fixed h-[calc(100vh_-_120px)] sm:flex-grow sm:flex sm:flex-col sm:justify-between p-5`}
+      >
+        <div className="flex flex-col gap-3 box-border">
+          {routeOptions.map((option, index) => {
+            if (option.admin && !userDoc.admin) return null;
 
-            <div>
-              <p className="font-medium">{user.displayName}</p>
-              <p className="text-muted-foreground/75 text-sm">
-                Premium account
-              </p>
-            </div>
-          </div>
-          <div
-            role="button"
-            className={`py-3 px-5 flex items-center gap-3 transition-all duration-300 hover:bg-primary/5 ${
-              -1 === activeRoute ? "bg-primary/5 font-medium" : ""
-            }`}
-            onClick={() => {
-              setActiveRoute(-1);
-              navigate("/conta");
-            }}
-          >
-            <PersonIcon />
-            <p className="text-md">Minha conta</p>
-          </div>
-          <Separator className="my-2.5" />
-          <div className="box-border">
-            {routeOptions.map((option, index) => {
-              if (option.admin && !userDoc.admin) return null;
-              if (
-                option.turma &&
-                userDoc.turma &&
-                option.turma !== userDoc.turma
-              ) {
-                return null;
-              }
+            if (option.hidden) return null;
 
-              if (option.turma && !userDoc.turma) {
-                return null;
-              }
+            if (userDoc.name === "Aluno Teste" && option.route === "/maia") {
+              return null;
+            }
 
-              return (
-                <div
-                  key={option.route}
-                  role="button"
-                  className={`py-3 px-5 flex items-center gap-3 transition-all duration-300 hover:bg-primary/5  ${
-                    index === activeRoute ? "bg-primary/5 font-medium" : ""
-                  }`}
-                  onClick={() => {
-                    setActiveRoute(index);
-                    if (option.external) {
-                      window.open(option.route, "_blank");
+            return (
+              <div
+                key={option.route}
+                role="button"
+                className={`${
+                  sidebarExpanded ? "w-full py-3 pl-2" : "w-fit p-3"
+                } relative flex items-center gap-3 transition-all duration-300 hover:bg-[#dfdfff55] rounded-md  ${
+                  index === activeRoute ? "bg-[#dfdfff55] font-medium" : ""
+                }`}
+                onClick={() => {
+                  setActiveRoute(index);
+                  if (option.external) {
+                    window.open(option.route, "_blank");
+                  } else {
+                    if (option.route === "/assistir" && !isWideScreen) {
+                      if (!isWideScreen) {
+                        setSidebarExpanded(false);
+                      }
+                      setIsWatching(true);
                     } else {
-                      navigate(option.route);
+                      setSidebarExpanded(true);
                     }
-                  }}
-                >
-                  {option.icon}
-                  <p className="text-md">{option.name}</p>
-                </div>
-              );
-            })}
+                    navigate(option.route);
+                  }
+                }}
+              >
+                {option.icon}
+                {sidebarExpanded && (
+                  <p className="text-sm text-black/75 font-normal">
+                    {option.name}
+                  </p>
+                )}
+                {option.badge && sidebarExpanded && (
+                  <p className="absolute top-0 -right-3 text-[11px] font-light bg-brand text-white px-1 rounded-sm">
+                    {option.badge}
+                  </p>
+                )}
+                {option.miniBadge && !sidebarExpanded && (
+                  <p className="absolute -top-[2px] right-[3px] text-[15px]">
+                    {option.miniBadge}
+                  </p>
+                )}
+              </div>
+            );
+          })}
 
-            {/* {!tokenDoc && (
+          {/* {!tokenDoc && (
               <div
                 role="button"
                 className="py-3 px-5 flex items-center gap-3 transition-all duration-300 hover:bg-primary/5"
@@ -160,10 +127,9 @@ export default function Sidebar({ rerender, setRerender }) {
                 <p className="text-md">Ativar notificações</p>
               </div>
             )} */}
-          </div>
         </div>
         <div>
-          <Separator className="my-3" />
+          <Separator className="my-3 opacity-15" />
           <div className="flex flex-col py-2.5">
             {/* <Button
               size="noPadding"
@@ -183,10 +149,12 @@ export default function Sidebar({ rerender, setRerender }) {
               size="noPadding"
               variant="ghost"
               onClick={handleLogout}
-              className="justify-start px-5 py-4 w-full opacity-50 transition-all duration-300 hover:bg-primary/10"
+              className={`${
+                sidebarExpanded ? "w-full py-3 pl-2" : "w-fit p-3"
+              } gap-3 rounded-md justify-start transition-all duration-300 hover:bg-[#dfdfff55] text-black/75 font-normal`}
             >
-              <ExitIcon className="w-4 h-4 mr-2" />
-              Sair da conta
+              <LogOutIcon className="w-5 h-5 text-brand" />
+              {sidebarExpanded ? "Sair da conta" : null}
             </Button>
           </div>
         </div>

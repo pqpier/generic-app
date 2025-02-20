@@ -8,7 +8,7 @@ if (admin.apps.length === 0) {
 const db = admin.firestore();
 
 exports.onBeforeCreate = functions.auth.user().onCreate(async (user) => {
-  if (user.providerData && user.providerData.length) {
+  if (user && user.providerData && user.providerData.length) {
     if (user.providerData[0].providerId.includes("google.com")) {
       try {
         const userDoc = {

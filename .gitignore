@@ -1,3 +1,5 @@
 node_modules
 dist
 src/pages/Admin
+src/pages/AdminPanel
+src/AdminAppRoutes

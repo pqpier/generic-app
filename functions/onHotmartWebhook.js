@@ -28,17 +28,6 @@ app.post("/", async (req, res) => {
   try {
     const db = admin.firestore();
     const auth = admin.auth();
-    let isReferral =
-      webhook.data.purchase?.origin?.xcod?.includes("ref-vid-") ||
-      webhook.data.purchase?.origin?.xcod?.includes("ref-pay-");
-
-    let referrer;
-    if (isReferral) {
-      referrer = webhook.data.purchase.origin.xcod;
-    } else {
-      referrer = false;
-      isReferral = false;
-    }
 
     if (webhook.event === "PURCHASE_APPROVED") {
       let userId;
@@ -68,14 +57,11 @@ app.post("/", async (req, res) => {
                   id: userId,
                   plan: {
                     status: "active",
+                    purchase_date: new Date(),
                     name: "premium",
                     status_date: new Date(),
                     platform: "hotmart",
                   },
-                  risk: "medium",
-                  new: true,
-                  isReferral,
-                  referrer,
                 },
                 { merge: true }
               );
@@ -91,14 +77,14 @@ app.post("/", async (req, res) => {
       }
 
       // // Verificar se encontrou o usuário
-      if (!userExistsOnAuth) {
+      if (!userExistsOnAuth && !userId) {
         // Calculando a data de renovação do plano
 
         let userRecord;
         try {
           userRecord = await auth.createUser({
             email,
-            password: "fmk123sep",
+            password: "senha123",
             displayName: name,
             emailVerified: true,
             disabled: false,
@@ -116,24 +102,18 @@ app.post("/", async (req, res) => {
                 status: "active",
                 name: "premium",
                 status_date: new Date(),
+                purchase_date: new Date(),
                 platform: "hotmart",
               },
-              risk: "medium",
-              new: true,
-              isReferral,
-              referrer,
             });
           userId = userRecord.uid;
-          await sendEmail(email, name, "fmk123sep");
+          await sendEmail(email, name, "senha123");
         } catch (error) {
           console.log(error);
         }
 
         return res.status(201).send("Usuário criado com sucesso!");
       }
-
-      // Pegando o ID do usuário
-      // const userId = userRec.uid;
 
       await db
         .collection("users")
@@ -154,6 +134,7 @@ app.post("/", async (req, res) => {
             new: true,
             isReferral,
             referrer,
+            latam: true,
           },
           { merge: true }
         );
@@ -187,6 +168,7 @@ app.post("/", async (req, res) => {
               status_date: new Date(),
             },
             risk: "medium",
+            latam: true,
           },
           { merge: true }
         );
@@ -232,6 +214,7 @@ app.post("/", async (req, res) => {
               status_date: new Date(),
             },
             risk: "medium",
+            latam: true,
           },
           { merge: true }
         );

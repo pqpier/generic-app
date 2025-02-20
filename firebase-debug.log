@@ -1,0 +1,39 @@
+[debug] [2025-02-20T17:30:19.633Z] ----------------------------------------------------------------------
+[debug] [2025-02-20T17:30:19.638Z] Command:       /Users/pqpier/.nvm/versions/node/v20.18.1/bin/node /Users/pqpier/.nvm/versions/node/v20.18.1/bin/firebase deploy --only hosting
+[debug] [2025-02-20T17:30:19.639Z] CLI Version:   13.30.0
+[debug] [2025-02-20T17:30:19.639Z] Platform:      darwin
+[debug] [2025-02-20T17:30:19.640Z] Node Version:  v20.18.1
+[debug] [2025-02-20T17:30:19.640Z] Time:          Thu Feb 20 2025 14:30:19 GMT-0300 (Brasilia Standard Time)
+[debug] [2025-02-20T17:30:19.640Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2025-02-20T17:30:19.800Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-02-20T17:30:19.800Z] > authorizing via signed-in user (rrrpieroni@gmail.com)
+[debug] [2025-02-20T17:30:19.800Z] [iam] checking project template-90106 for permissions ["firebase.projects.get","firebasehosting.sites.update"]
+[debug] [2025-02-20T17:30:19.801Z] Checked if tokens are valid: false, expires at: 1740064217426
+[debug] [2025-02-20T17:30:19.801Z] Checked if tokens are valid: false, expires at: 1740064217426
+[debug] [2025-02-20T17:30:19.801Z] > refreshing access token with scopes: []
+[debug] [2025-02-20T17:30:19.802Z] >>> [apiv2][query] POST https://www.googleapis.com/oauth2/v3/token [none]
+[debug] [2025-02-20T17:30:19.802Z] >>> [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-02-20T17:30:20.049Z] <<< [apiv2][status] POST https://www.googleapis.com/oauth2/v3/token 200
+[debug] [2025-02-20T17:30:20.050Z] <<< [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-02-20T17:30:20.103Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/template-90106:testIamPermissions [none]
+[debug] [2025-02-20T17:30:20.103Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/template-90106:testIamPermissions x-goog-quota-user=projects/template-90106
+[debug] [2025-02-20T17:30:20.103Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/template-90106:testIamPermissions {"permissions":["firebase.projects.get","firebasehosting.sites.update"]}
+[debug] [2025-02-20T17:30:21.203Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/template-90106:testIamPermissions 200
+[debug] [2025-02-20T17:30:21.203Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/template-90106:testIamPermissions {}
+[debug] [2025-02-20T17:30:21.204Z] [iam] error while checking permissions, command may fail: Authorization failed. This account is missing the following required permissions on project template-90106:
+
+  firebase.projects.get
+  firebasehosting.sites.update
+[debug] [2025-02-20T17:30:21.204Z] Checked if tokens are valid: true, expires at: 1740076219050
+[debug] [2025-02-20T17:30:21.204Z] Checked if tokens are valid: true, expires at: 1740076219050
+[debug] [2025-02-20T17:30:21.204Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/template-90106 [none]
+[debug] [2025-02-20T17:30:21.726Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/template-90106 403
+[debug] [2025-02-20T17:30:21.726Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/template-90106 {"error":{"code":403,"message":"The caller does not have permission","status":"PERMISSION_DENIED"}}
+[debug] [2025-02-20T17:30:21.727Z] Request to https://firebase.googleapis.com/v1beta1/projects/template-90106 had HTTP Error: 403, The caller does not have permission
+[debug] [2025-02-20T17:30:21.926Z] FirebaseError: Request to https://firebase.googleapis.com/v1beta1/projects/template-90106 had HTTP Error: 403, The caller does not have permission
+    at responseToError (/Users/pqpier/.nvm/versions/node/v20.18.1/lib/node_modules/firebase-tools/lib/responseToError.js:52:12)
+    at RetryOperation._fn (/Users/pqpier/.nvm/versions/node/v20.18.1/lib/node_modules/firebase-tools/lib/apiv2.js:312:77)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+[error] 
+[error] Error: Failed to get Firebase project template-90106. Please make sure the project exists and your account has permission to access it.

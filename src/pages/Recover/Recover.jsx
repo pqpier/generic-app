@@ -42,20 +42,14 @@ export default function PasswordRecovery() {
         <div>
           <Logo />
           <h2 className="mt-12 sm:mt-10 2xl:mt-16 text-4xl leading-[44px] sm:leading-[50px] font-medium">
-            Negocie nos mercados globais com o poder da Inteligência Artificial.
+            Lorem ipsum dolor, sit amet consectetur adipisicing elit.
           </h2>
           <p className="mt-4 sm:mt-6 2xl:mt-10 text-muted-foreground">
-            Receba Oportunidades de Negociação em tempo real para simplesmente
-            copiar e colar e obter lucros diários em dólar. Utilize nossa
-            estratégia antivolatilidade para realizar dezenas de operações por
-            dia e lucrar com segurança.
-          </p>
-          {/* <div className="bg-foreground text-background p-5 sm:p-8 rounded-xl mt-[8%] leading-6 2xl:leading-8">
             Lorem ipsum dolor sit amet, consectetur adipisicing elit. Eveniet
             quasi molestias molestiae, pariatur, doloribus neque saepe sit hic
             quis sequi nulla non quidem accusantium harum ipsa minima adipisci
             iure obcaecati!
-          </div> */}
+          </p>
         </div>
       </div>
       <div className="flex flex-col justify-center xl:w-1/2 px-5 md:px-20 h-screen sm:h-auto">

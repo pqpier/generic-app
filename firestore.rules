@@ -50,9 +50,5 @@ service cloud.firestore {
     match /courses/{courseId} {
       allow read, write: if isSignedIn() && isPaid();
     }
-    match /onboarding/{onboardingId} {
-      allow read, create: if isSignedIn() && isPaid();
-      allow update, delete: if false;
-    }
   }
 }

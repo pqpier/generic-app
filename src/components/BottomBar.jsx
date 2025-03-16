@@ -3,7 +3,7 @@ import { useAuthContext } from "@/hooks/useAuthContext";
 import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
-export default function BottomBar() {
+export default function BottomBar({ activeRoute, setActiveRoute }) {
   const { user } = useAuthContext();
   const navigate = useNavigate();
   const location = useLocation();
@@ -15,15 +15,16 @@ export default function BottomBar() {
           <div
             key={option.route}
             role="button"
-            className={`relative flex flex-col items-center justify-center w-full h-full text-xs font-medium text-center transition-all duration-300 ${
-              index === 0 ? "text-primary" : "text-secondary"
-            }`}
+            className={`relative flex flex-col gap-1 items-center justify-center w-full h-full text-xs font-medium text-center transition-all duration-300
+            ${
+              activeRoute === option.route
+                ? "text-brand"
+                : "text-muted-foreground"
+            }
+            `}
             onClick={() => {
-              if (option.external) {
-                window.open(option.route, "_blank");
-              } else {
-                navigate(option.route);
-              }
+              setActiveRoute(option.route);
+              navigate(option.route);
             }}
           >
             {option.icon}
@@ -32,6 +33,7 @@ export default function BottomBar() {
                 {option.badge}
               </p>
             )}
+            {option.name}
           </div>
         );
       })}

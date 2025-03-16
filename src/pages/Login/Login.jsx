@@ -59,14 +59,15 @@ export default function Login() {
 
   return (
     <div className="flex flex-col-reverse xl:flex-row 2xl:gap-20 xl:h-screen w-full xl:px-20 2xl:px-40 xl:py-20 2xl:py-0">
-      <div className="xl:w-1/2 2xl:h-[50%] my-auto bg-muted rounded-xl px-5 sm:p-12 py-8 flex justify-center items-center">
+      <div className="xl:w-1/2 my-auto bg-muted rounded-xl px-5 sm:p-12 py-8 flex justify-center items-center">
         <div>
-          <Logo size={240} />
+          <Logo size={192} />
           <h2 className="mt-12 sm:mt-10 2xl:mt-16 text-4xl leading-[44px] sm:leading-[50px] font-medium">
-            Headline
+            Lorem ipsum dolor sit amet consectetur adipisicing elit.
           </h2>
           <h3 className="mt-12 sm:mt-2 2xl:mt-4 text-lg leading-[44px] sm:leading-[24px] font-normal">
-            Subheadline
+            Lorem ipsum dolor sit amet, consectetur adipisicing elit. Sequi vero
+            non alias at enim incidunt.
           </h3>
           <p className="mt-4 sm:mt-6 2xl:mt-10 text-muted-foreground">
             Lorem ipsum dolor sit amet, consectetur adipisicing elit. Recusandae

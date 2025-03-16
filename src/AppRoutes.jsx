@@ -17,10 +17,11 @@ import Training from "./pages/Training/Training";
 import { ReferrerDocProvider } from "./contexts/ReferrerDocContext";
 import { db } from "./firebase/config";
 import { doc, onSnapshot } from "firebase/firestore";
-import Dashboard from "./pages/Dashboard/Dashboard";
+import Home from "./pages/Home/Home";
 import TopbarMobile from "./components/TopbarMobile";
 import BottomBar from "./components/BottomBar";
 import Content from "./pages/Content/Content";
+import StartHere from "./pages/Content/Training/StartHere/StartHere";
 
 function AppRoutes() {
   const { user, authIsReady } = useAuthContext();
@@ -32,6 +33,7 @@ function AppRoutes() {
   const [error, setError] = useState(null);
   const isMobile = useMediaQuery("(max-width: 640px)");
   const scrollToTop = useRef(null);
+  const [activeRoute, setActiveRoute] = useState("/");
 
   if (!authIsReady) {
     console.log("Not auth is ready");
@@ -72,8 +74,12 @@ function AppRoutes() {
                 )}
                 <div className="sm:w-[calc(100%_-_300px)] sm:ml-[310px] mt-[80px] px-2.5 sm:px-5 sm:mt-[112px]">
                   <Routes>
-                    <Route exact path="/" element={<Dashboard />} />
-                    <Route path="/content" element={<Content />} />
+                    <Route exact path="/" element={<Home />} />
+                    <Route path="/adestramento" element={<Content />} />
+                    <Route path="/comece-aqui" element={<StartHere />} />
+                    <Route path="/rota2" element={<Content />} />
+                    <Route path="/rota3" element={<Content />} />
+                    <Route path="/rota4" element={<Content />} />
                     <Route
                       path="/conta"
                       element={
@@ -84,12 +90,15 @@ function AppRoutes() {
                       }
                     />
                     <Route path="/help" element={<Help />} />
-                    <Route path="*" element={<Dashboard />} />
+                    <Route path="*" element={<Home />} />
                   </Routes>
                 </div>
                 {isMobile ? (
                   <div className="h-16 fixed bottom-0 left-0">
-                    <BottomBar />
+                    <BottomBar
+                      activeRoute={activeRoute}
+                      setActiveRoute={setActiveRoute}
+                    />
                   </div>
                 ) : null}
               </ReferrerDocProvider>

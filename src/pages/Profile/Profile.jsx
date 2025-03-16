@@ -10,7 +10,7 @@ import Loading from "@/components/Loading";
 
 // TODO: Trocar pela URL da sua Cloud Function
 const url =
-  "https://us-central1-trading-app-e0773.cloudfunctions.net/changePassword";
+  "https://us-central1-<PROJECT_ID>.cloudfunctions.net/changePassword";
 
 export default function Profile({ rerender, setRerender }) {
   const { user } = useAuthContext();
@@ -51,40 +51,24 @@ export default function Profile({ rerender, setRerender }) {
 
   if (!userDoc) return <Loading />;
 
-  const isLatam = userDoc.latam;
-
   return (
     <div className="mt-5 px-0 py-5 w-full xl:w-3/5 mx-auto 2xl:w-1/3">
       {rerender && <span className="hidden"></span>}
-      <h1 className="font-medium text-xl">
-        {isLatam ? "Su cuenta" : "Sua conta"}
-      </h1>
+      <h1 className="font-medium text-xl">Sua conta</h1>
       <p className="text-muted-foreground font-light text-md text-left">
-        {isLatam
-          ? "Cambie los datos de su cuenta"
-          : "Altere os dados da sua conta"}
+        Altere os dados da sua conta
       </p>
 
       <Card className="mt-2.5 w-full">
         <CardContent>
-          <p className="mt-5 text-muted-foreground mb-1.5">
-            {isLatam ? "Nombre completo" : "Nome completo"}
-          </p>
+          <p className="mt-5 text-muted-foreground mb-1.5">Nome completo</p>
           <Input disabled value={user.displayName} readOnly type="text" />
-          <p className="mt-5 text-muted-foreground mb-1.5">
-            {isLatam ? "Correo electrónico" : "E-mail"}
-          </p>
+          <p className="mt-5 text-muted-foreground mb-1.5">E-mail</p>
           <Input disabled value={user.email} readOnly type="email" />
           <div className="flex gap-5">
             <div>
               <p className="mt-5 text-muted-foreground mb-1.5">
-                {isLatam ? "Nivel de riesgo" : "Nível de risco"}
-              </p>
-              <RiskToggle />
-            </div>
-            <div>
-              <p className="mt-5 text-muted-foreground mb-1.5">
-                Tema (claro/{isLatam ? "oscuro" : "escuro"})
+                Tema (claro/escuro)
               </p>
               <ModeToggle />
             </div>
@@ -92,18 +76,14 @@ export default function Profile({ rerender, setRerender }) {
 
           {isEmailProvider && (
             <form onSubmit={changePassword}>
-              <p className="mt-5 text-muted-foreground mb-1.5">
-                {isLatam ? "Contraseña actual" : "Senha atual"}
-              </p>
+              <p className="mt-5 text-muted-foreground mb-1.5">Senha atual</p>
               <Input
                 autoComplete="current-password"
                 value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}
                 type="password"
               />
-              <p className="mt-1.5 text-muted-foreground mb-1.5">
-                {isLatam ? "Nueva contraseña" : "Nova senha"}
-              </p>
+              <p className="mt-1.5 text-muted-foreground mb-1.5">Nova senha</p>
               <Input
                 autoComplete="new-password"
                 value={password}
@@ -114,7 +94,7 @@ export default function Profile({ rerender, setRerender }) {
                 type="password"
               />
               <p className="mt-1.5 text-muted-foreground mb-1.5">
-                {isLatam ? "Confirme la contraseña" : "Confirme a senha"}
+                Confirme a senha
               </p>
               <Input
                 autoComplete="new-password"
@@ -129,7 +109,7 @@ export default function Profile({ rerender, setRerender }) {
                 <p className="text-sm mt-1.5 text-red-500">{message}</p>
               )}
               <Button className="mt-2.5" type="submit">
-                {isLatam ? "Cambiar la contraseña" : "Alterar a senha"}
+                Alterar a senha
               </Button>
             </form>
           )}
